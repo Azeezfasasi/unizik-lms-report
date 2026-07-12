@@ -1,0 +1,747 @@
+UNIZIK Postgraduate LMS Report Portal
+Full Technical Specification — PWA Build Guide
+Prepared for: Sense Solutions / Sense Tech Stack: Next.js 15 (App Router) · TypeScript ·
+Tailwind CSS · MongoDB (Mongoose) · Cloudinary · Brevo Document Type: Complete
+Architecture, API, Data Model & File Structure Reference Version: 2.0
+1. Project Overview
+The UNIZIK Postgraduate LMS Report Portal is a role-based reporting and academic
+tracking PWA covering two major flows:
+1. Academic Configuration — Faculty/Department structuring, Curriculum management,
+Examiner Reports.
+2. Student Reporting Pipeline — Faculty → Curriculum → Lectures Calendar →
+Examination Timetable → General Reports → Submit → Export (PDF/Excel).
+2. Tech Stack
+Layer
+Framework
+Language
+Styling
+PWA Layer
+Database
+Technology
+Next.js 15 (App Router)
+TypeScript
+Tailwind CSS + shadcn/ui
+@ducanh2912/next-pwa
+Purpose
+Routing, server components, API
+routes
+Type safety across models, forms,
+APIs
+Component system
+Service worker, manifest, offline
+caching
+MongoDB + Mongoose
+Document store for all entities
+NextAuth.js (Auth.js v5) with
+Auth Credentials + MongoDB adapter Session-based role auth
+Media
+Storage
+Cloudinary (cloudinary SDK,
+next-cloudinary for display)
+Profile photos, signed documents,
+uploaded attachments
+Email
+Service
+Brevo (@getbrevo/brevo SDK or
+REST)
+Auth emails, report notifications,
+reminders
+Data
+Fetching TanStack Query Client caching, offline-friendly
+reads
+Forms &
+Validation React Hook Form + Zod Validated report/curriculum forms
+Tables TanStack Table Sortable/filterable report and
+curriculum tables
+PDF Export @react-pdf/renderer Generate PDF reports server-side
+Excel
+Export exceljs Generate .xlsx exports
+Offline
+Storage IndexedDB (idb) Draft reports, cached reference
+data
+Deployment Vercel Hosting, edge functions, cron (for
+reminder emails)
+3. Complete Folder & File Structure
+unizik-lms-portal/
+├── app/
+│   ├── layout.tsx
+│   ├── globals.css
+│   ├── manifest.ts
+│   ├── icon.png
+│   ├── (auth)/
+│   │   ├── login/page.tsx
+│   │   ├── forgot-password/page.tsx
+│   │   ├── reset-password/[token]/page.tsx
+│   │   └── layout.tsx
+│   │
+│   ├── (dashboard)/       
+│       
+├── layout.tsx                              # Sidebar + topbar + role guard
+├── dashboard/page.tsx                      # Landing/overview after login
+│
+├── faculty-departments/
+│   
+├── page.tsx                            # List all faculties  
+│   
+│   
+│
+├── new/page.tsx                        # Create faculty
+├── [facultyId]/page.tsx                # Faculty detail + departments
+├── [facultyId]/edit/page.tsx
+├── [facultyId]/departments/new/page.tsx
+└── [facultyId]/departments/[deptId]/page.tsx
+├── curriculum/
+│   
+├── page.tsx                            # All curricula (filterable)
+│   
+│   
+│   
+│
+├── new/page.tsx
+├── [curriculumId]/page.tsx
+└── [curriculumId]/edit/page.tsx
+├── examiner-report/
+│   
+├── page.tsx                            # List examiner reports  
+│
+├── new/page.tsx
+└── [reportId]/page.tsx
+├── student-reports/
+│   
+├── page.tsx                            # Faculty selector (entry point)
+ 
+│
+├── [facultyId]/curriculum/page.tsx
+├── [facultyId]/lectures-calendar/page.tsx
+├── [facultyId]/exam-timetable/page.tsx
+├── [facultyId]/general-report/page.tsx  # Aggregated preview
+└── [facultyId]/submit/page.tsx          # Final submit + export
+├── reports/
+│   
+├── page.tsx                            # All submitted reports (admin view)
+│   
+│
+└── [reportId]/page.tsx                 # Single report detail/export
+├── students/
+│   
+├── page.tsx   
+│
+├── new/page.tsx
+└── [studentId]/page.tsx
+├── page.tsx
+├── users/                                  # Admin: manage staff/examiner accounts
+│     
+│
+├── new/page.tsx
+└── [userId]/page.tsx
+└── settings/
+├── page.tsx
+└── profile/page.tsx
+│   │
+│   ├── api/
+│   │   ├── auth/
+│   │   │   ├── [...nextauth]/route.ts
+│   │   │   ├── register/route.ts
+│   │   │   ├── forgot-password/route.ts
+│   │   │   └── reset-password/route.ts
+│   │   │
+│   │   ├── faculties/
+│   │   │   ├── route.ts                            # GET (list), POST (create)
+│   │   │   └── [id]/route.ts                       # GET, PATCH, DELETE
+│   │   │
+│   │   ├── departments/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── curriculum/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── courses/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── lectures-calendar/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── exam-timetable/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── examiner-reports/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── students/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── users/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   │
+│   │   ├── reports/
+│   │   │   ├── route.ts                            # GET (list), POST (create/save draft)
+│   │   │   ├── [id]/route.ts                       # GET, PATCH (update draft)
+│   │   │   └── [id]/submit/route.ts                # POST — locks report as SUBMITTED
+│   │   │
+│   │   ├── export/
+│   │   │   ├── pdf/[reportId]/route.ts
+│   │   │   └── excel/[reportId]/route.ts
+│   │   │
+│   │   ├── upload/
+│   │   │   └── route.ts                            # Cloudinary signed upload
+│   │   │
+│   │   ├── email/
+│   │   │   └── send/route.ts                       # Brevo transactional email trigger
+│   │   │
+│   │   └── notifications/
+│   │       └── route.ts
+│   │
+│   └── offline/page.tsx                            # Fallback page when offline & uncached
+│
+├── components/
+│   ├── ui/                                         # shadcn/ui primitives
+│   ├── layout/
+│   │   ├── Sidebar.tsx
+│   │   ├── Topbar.tsx
+│   │   └── RoleGuard.tsx
+│   ├── forms/
+│   │   ├── FacultyForm.tsx
+│   │   ├── DepartmentForm.tsx
+│   │   ├── CurriculumForm.tsx
+│   │   ├── ExaminerReportForm.tsx
+│   │   ├── LectureScheduleForm.tsx
+│   │   ├── ExamTimetableForm.tsx
+│   │   └── StudentReportStepper.tsx                # Multi-step wizard for report pipeline
+│   ├── tables/
+│   │   ├── FacultyTable.tsx
+│   │   ├── CurriculumTable.tsx
+│   │   ├── ReportsTable.tsx
+│   │   └── StudentsTable.tsx
+│   ├── reports/
+│   │   ├── GeneralReportPreview.tsx
+│   │   ├── ReportPDFDocument.tsx                   # @react-pdf/renderer template
+│   │   └── ExportButtons.tsx
+│   ├── shared/
+│   │   ├── Breadcrumbs.tsx
+│   │   ├── StepperNav.tsx                          # Visual pipeline progress (matches flowchart)
+│   │   ├── OfflineBanner.tsx
+│   │   ├── FileUploader.tsx                        # Cloudinary widget wrapper
+│   │   └── LoadingSpinner.tsx
+│   └── providers/
+│       ├── QueryProvider.tsx
+│       ├── SessionProvider.tsx
+│       └── ToastProvider.tsx
+│
+├── lib/
+│   ├── db/
+│   │   └── connectDB.ts                            # Mongoose connection singleton
+│   ├── auth/
+│   │   └── authOptions.ts                          # NextAuth config
+│   ├── cloudinary/
+│   │   └── cloudinary.ts                           # Cloudinary config + signed upload helper
+│   ├── email/
+│   │   ├── brevoClient.ts                          # Brevo SDK init
+│   │   └── templates/
+│   │       ├── welcomeEmail.ts
+│   │       ├── passwordResetEmail.ts
+│   │       ├── reportSubmittedEmail.ts
+│   │       └── examTimetableReminderEmail.ts
+│   ├── validators/
+│   │   ├── facultySchema.ts
+│   │   ├── departmentSchema.ts
+│   │   ├── curriculumSchema.ts
+│   │   ├── reportSchema.ts
+│   │   ├── studentSchema.ts
+│   │   └── userSchema.ts
+│   ├── export/
+│   │   ├── generatePDF.ts
+│   │   └── generateExcel.ts
+│   ├── utils.ts
+│   └── constants.ts                                # Roles, statuses, enums
+│
+├── models/                                         # Mongoose schemas
+│   ├── User.ts
+│   ├── Faculty.ts
+│   ├── Department.ts
+│   ├── Curriculum.ts
+│   ├── Course.ts
+│   ├── LectureSchedule.ts
+│   ├── ExamTimetable.ts
+│   ├── ExaminerReport.ts
+│   ├── Student.ts
+│   ├── Report.ts
+│   └── Notification.ts
+│
+├── hooks/
+│   ├── useOnlineStatus.ts
+│   ├── useOfflineSync.ts                           # Syncs IndexedDB drafts on reconnect
+│   
+├── useFaculties.ts
+│   
+│   
+├── useCurriculum.ts
+└── useReports.ts
+│
+├── store/
+│   
+└── reportDraftStore.ts                         # Zustand store for in-progress report wizard
+│
+├── types/
+│   
+├── faculty.d.ts
+│   
+│   
+│   
+├── curriculum.d.ts
+├── report.d.ts
+└── next-auth.d.ts
+│
+├── middleware.ts                                   # Route protection by role
+├── next.config.ts                                  # next-pwa wrapper config
+├── tailwind.config.ts
+├── public/
+│   
+├── icons/ 
+├── icon-192.png
+└── icon-512.png
+└── offline-fallback.html
+├── .env.local
+└── package.json
+4. MongoDB / Mongoose Data Models
+4.1 User.ts
+import { Schema, model, models } from "mongoose";
+const UserSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true, select: false },
+    role: {
+      type: String,
+      enum: ["ADMIN", "FACULTY_OFFICER", "EXAMINER", "STUDENT"],
+      default: "STUDENT",
+    },
+    avatarUrl: { type: String },        // Cloudinary secure_url
+    facultyId: { type: Schema.Types.ObjectId, ref: "Faculty" },
+    isActive: { type: Boolean, default: true },
+    lastLoginAt: { type: Date },
+    resetToken: { type: String, select: false },
+    resetTokenExpiry: { type: Date, select: false },
+  },
+  { timestamps: true }
+);
+export default models.User || model("User", UserSchema);
+4.2 Faculty.ts
+import { Schema, model, models } from "mongoose";
+const FacultySchema = new Schema(
+  {
+    name: { type: String, required: true, unique: true },
+    code: { type: String, required: true, unique: true },
+    dean: { type: String },
+    description: { type: String },
+  },
+  { timestamps: true }
+);
+export default models.Faculty || model("Faculty", FacultySchema);
+4.3 Department.ts
+import { Schema, model, models } from "mongoose";
+const DepartmentSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    facultyId: { type: Schema.Types.ObjectId, ref: "Faculty", required: true },
+    hod: { type: String },
+  },
+  { timestamps: true }
+);
+export default models.Department || model("Department", DepartmentSchema);
+4.4 Curriculum.ts
+import { Schema, model, models } from "mongoose";
+const CurriculumSchema = new Schema(
+  {
+    departmentId: { type: Schema.Types.ObjectId, ref: "Department", required: true },
+    programName: { type: String, required: true },   // e.g. M.Sc Computer Science
+    level: { type: String },                          // PGD, MSc, PhD
+    courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
+    version: { type: String, default: "1.0" },
+    documentUrl: { type: String },                    // Cloudinary uploaded curriculum PDF
+  },
+  { timestamps: true }
+);
+export default models.Curriculum || model("Curriculum", CurriculumSchema);
+4.5 Course.ts
+import { Schema, model, models } from "mongoose";
+const CourseSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    code: { type: String, required: true },
+    units: { type: Number, required: true },
+    semester: { type: String, enum: ["FIRST", "SECOND"], required: true },
+    curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum" },
+  },
+  { timestamps: true }
+);
+export default models.Course || model("Course", CourseSchema);
+4.6 LectureSchedule.ts
+import { Schema, model, models } from "mongoose";
+const LectureScheduleSchema = new Schema(
+  {
+    curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum", required: true },
+    courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+    lecturer: { type: String },
+    dayOfWeek: { type: String },
+    startTime: { type: String },      // "09:00"
+    endTime: { type: String },        // "11:00"
+    venue: { type: String },
+  },
+  { timestamps: true }
+);
+export default models.LectureSchedule || model("LectureSchedule", LectureScheduleSchema);
+4.7 ExamTimetable.ts
+import { Schema, model, models } from "mongoose";
+const ExamTimetableSchema = new Schema(
+  {
+    curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum", required: true },
+    courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+    examDate: { type: Date, required: true },
+    startTime: { type: String },
+    endTime: { type: String },
+    venue: { type: String },
+    invigilator: { type: String },
+  },
+  { timestamps: true }
+);
+export default models.ExamTimetable || model("ExamTimetable", ExamTimetableSchema);
+4.8 ExaminerReport.ts
+import { Schema, model, models } from "mongoose";
+const ExaminerReportSchema = new Schema(
+  {
+    examinerName: { type: String, required: true },
+    facultyId: { type: Schema.Types.ObjectId, ref: "Faculty" },
+    departmentId: { type: Schema.Types.ObjectId, ref: "Department" },
+    courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+    comments: { type: String },
+    score: { type: Number },
+    attachmentUrl: { type: String },   // Cloudinary
+    submittedAt: { type: Date },
+  },
+  { timestamps: true }
+);
+export default models.ExaminerReport || model("ExaminerReport", ExaminerReportSchema);
+4.9 Student.ts
+import { Schema, model, models } from "mongoose";
+const StudentSchema = new Schema(
+  {
+    matricNumber: { type: String, required: true, unique: true },
+    fullName: { type: String, required: true },
+    email: { type: String, required: true },
+    facultyId: { type: Schema.Types.ObjectId, ref: "Faculty" },
+    departmentId: { type: Schema.Types.ObjectId, ref: "Department" },
+    curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum" },
+    programLevel: { type: String },     // PGD, MSc, PhD
+    photoUrl: { type: String },         // Cloudinary
+    status: { type: String, enum: ["ACTIVE", "SUSPENDED", "GRADUATED"], default: "ACTIVE" },
+  },
+  { timestamps: true }
+);
+export default models.Student || model("Student", StudentSchema);
+4.10 Report.ts
+import { Schema, model, models } from "mongoose";
+const ReportSchema = new Schema(
+  {
+    studentId: { type: Schema.Types.ObjectId, ref: "Student", required: true },
+    facultyId: { type: Schema.Types.ObjectId, ref: "Faculty", required: true },
+    curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum" },
+    lectureScheduleIds: [{ type: Schema.Types.ObjectId, ref: "LectureSchedule" }],
+    examTimetableIds: [{ type: Schema.Types.ObjectId, ref: "ExamTimetable" }],
+    status: { type: String, enum: ["DRAFT", "SUBMITTED"], default: "DRAFT" },
+    preparedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    submittedAt: { type: Date },
+    exportedPdfUrl: { type: String },    // Cloudinary-hosted generated PDF (optional archive)
+    exportedExcelUrl: { type: String },
+    notes: { type: String },
+  },
+  { timestamps: true }
+);
+export default models.Report || model("Report", ReportSchema);
+4.11 Notification.ts
+import { Schema, model, models } from "mongoose";
+const NotificationSchema = new Schema(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    title: { type: String, required: true },
+    message: { type: String },
+    read: { type: Boolean, default: false },
+    type: { type: String, enum: ["INFO", "REMINDER", "ALERT"], default: "INFO" },
+  },
+  { timestamps: true }
+);
+export default models.Notification || model("Notification", NotificationSchema);
+5. Complete API Endpoint Reference
+5.1 Authentication
+Method
+Endpoint
+Description
+POST
+/api/auth/register
+Create new user (admin-invoked)
+POST/GET
+/api/auth/[...nextauth]
+NextAuth sign-in/sign-out/session handlers
+POST
+/api/auth/forgot-password
+Trigger Brevo reset email
+POST
+/api/auth/reset-password
+Reset password via token
+5.2 Faculties
+Method
+Endpoint
+Description
+GET
+/api/faculties
+List all faculties
+POST
+Create faculty
+/api/faculties
+GET /api/faculties/[id] Get single faculty (with departments)
+PATCH /api/faculties/[id] Update faculty
+DELETE /api/faculties/[id] Delete faculty
+5.3 Departments
+Method Endpoint Description
+GET /api/departments?facultyId= List departments (optionally by faculty)
+POST /api/departments Create department
+GET /api/departments/[id] Get single department
+PATCH /api/departments/[id] Update department
+DELETE /api/departments/[id] Delete department
+5.4 Curriculum
+Method Endpoint Description
+GET /api/curriculum?departmentId= List curricula
+POST /api/curriculum Create curriculum
+GET /api/curriculum/[id] Get curriculum + courses
+PATCH /api/curriculum/[id] Update curriculum
+DELETE /api/curriculum/[id] Delete curriculum
+5.5 Courses
+Method Endpoint Description
+GET /api/courses?curriculumId= List courses
+POST /api/courses Create course
+GET /api/courses/[id] Get course
+PATCH /api/courses/[id] Update course
+DELETE /api/courses/[id] Delete course
+5.6 Lectures Calendar
+Method Endpoint Description
+GET /api/lectures-calendar?curriculumId= List lecture schedules
+POST /api/lectures-calendar Create schedule entry
+GET /api/lectures-calendar/[id] Get single entry
+PATCH /api/lectures-calendar/[id] Update entry
+DELETE /api/lectures-calendar/[id] Delete entry
+5.7 Examination Timetable
+Method Endpoint Description
+GET /api/exam-timetable?curriculumId= List exam timetable entries
+POST /api/exam-timetable Create entry
+GET /api/exam-timetable/[id] Get single entry
+PATCH /api/exam-timetable/[id] Update entry
+DELETE /api/exam-timetable/[id] Delete entry
+5.8 Examiner Reports
+Method Endpoint Description
+GET /api/examiner-reports?facultyId= List examiner reports
+POST /api/examiner-reports Submit new examiner report
+GET /api/examiner-reports/[id] Get report detail
+PATCH /api/examiner-reports/[id] Update report
+DELETE /api/examiner-reports/[id] Delete report
+5.9 Students
+Method Endpoint Description
+GET /api/students?facultyId=&departmentId= List students (filterable)
+POST /api/students Create student record
+GET /api/students/[id] Get student profile
+PATCH /api/students/[id] Update student
+DELETE /api/students/[id] Delete student
+5.10 Users (Admin)
+Method Endpoint Description
+GET /api/users List staff/examiner accounts
+POST /api/users Create user account
+GET /api/users/[id] Get user
+PATCH /api/users/[id] Update user (role, status)
+DELETE /api/users/[id] Deactivate/delete user
+5.11 Reports (Student Reporting Pipeline)
+Method Endpoint Description
+GET /api/reports?status=&facultyId= List reports (draft/submitted)
+POST /api/reports Create/save a draft report
+GET /api/reports/[id] Get single report (aggregated view)
+PATCH /api/reports/[id] Update draft report data
+POST /api/reports/[id]/submit Finalize — sets status to SUBMITTED
+DELETE /api/reports/[id] Delete draft report
+5.12 Export
+Method Endpoint Description
+GET /api/export/pdf/[reportId] Stream generated PDF
+GET /api/export/excel/[reportId] Stream generated .xlsx
+5.13 Media Upload (Cloudinary)
+Method Endpoint Description
+POST /api/upload Generate signed Cloudinary upload params / handle server
+side upload
+5.14 Email (Brevo)
+Method Endpoint Description
+POST /api/email/send Send transactional email (welcome, reminders, report
+submitted receipt)
+5.15 Notifications
+Method Endpoint Description
+GET /api/notifications List current user’s notifications
+PATCH /api/notifications/[id] Mark as read
+6. UI Pages Summary
+Route Purpose Primary Role
+Access
+/login Authentication All
+/forgot-password, /reset
+password/[token]
+Password recovery All
+/dashboard Landing overview, quick
+stats
+All (role-scoped
+widgets)
+/faculty-departments List/manage faculties Admin
+/faculty-departments/[facultyId] Faculty detail +
+departments Admin
+/curriculum All curricula, filterable Admin, Faculty
+Officer
+/curriculum/[curriculumId] Curriculum detail + course
+list
+Admin, Faculty
+Officer
+/examiner-report List + create examiner
+reports Examiner, Admin
+/student-reports Faculty selector entry point Faculty Officer,
+Student
+/student
+reports/[facultyId]/curriculum
+Step 1 of pipeline Faculty Officer
+/student
+reports/[facultyId]/lectures
+calendar
+Step 2 Faculty Officer
+/student
+reports/[facultyId]/exam
+timetable
+Step 3 Faculty Officer
+/student
+reports/[facultyId]/general
+report
+Aggregated preview Faculty Officer
+/student
+reports/[facultyId]/submit
+Final submit + export
+buttons Faculty Officer
+/reports All submitted reports
+(admin oversight) Admin
+/reports/[reportId] Report detail + re-export Admin
+/students
+/students/[studentId]
+Student directory
+Admin, Faculty
+Officer
+Student profile
+/users
+Admin, Faculty
+Officer
+Staff account management
+/settings/profile
+Admin
+Own profile, avatar upload
+(Cloudinary)
+/offline
+All
+Offline fallback page
+All (auto-served)
+7. Cloudinary Integration
+// lib/cloudinary/cloudinary.ts
+import { v2 as cloudinary } from "cloudinary";
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+export default cloudinary;
+// app/api/upload/route.ts
+import cloudinary from "@/lib/cloudinary/cloudinary";
+export async function POST(req: Request) {
+  const { file, folder } = await req.json();
+  const result = await cloudinary.uploader.upload(file, {
+    folder: folder || "unizik-lms",
+    resource_type: "auto",
+  });
+  return Response.json({ url: result.secure_url, publicId: result.public_id });
+}
+Use cases: student photos, curriculum PDFs, examiner report attachments, archived
+exported PDF/Excel reports, user avatars.
+8. Brevo Email Integration
+// lib/email/brevoClient.ts
+import * as brevo from "@getbrevo/brevo";
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY as string
+);
+export default apiInstance;
+// lib/email/templates/reportSubmittedEmail.ts
+export const reportSubmittedEmail = (name: string, reportId: string) => ({
+  subject: "Your General Report has been submitted",
+  htmlContent: `<p>Hi ${name},</p><p>Your report (ID: ${reportId}) has been successfully submitted and is now available for review.</p>`,
+});
+Trigger points:
+Account creation (welcome email + temporary password).
+Password reset requests.
+Report successfully submitted (confirmation to preparer + notification to Faculty
+Officer/Admin).
+Upcoming exam timetable reminders (via a scheduled Vercel Cron job hitting
+/api/email/send ).
+9. Environment Variables ( .env.local )
+MONGODB_URI=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+BREVO_API_KEY=
+BREVO_SENDER_EMAIL=
+BREVO_SENDER_NAME=
+NEXT_PUBLIC_APP_URL=
+10. MongoDB Connection Helper
+// lib/db/connectDB.ts
+import mongoose from "mongoose";
+const MONGODB_URI = process.env.MONGODB_URI as string;
+let cached = (global as any).mongoose || { conn: null, promise: null };
+export async function connectDB() {
+  if (cached.conn) return cached.conn;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI).then((m) => m);
+  }
+  cached.conn = await cached.promise;
+  (global as any).mongoose = cached;
+  return cached.conn;
+}
+11. Key npm Packages
+npm install next react react-dom typescript
+npm install @ducanh2912/next-pwa
+npm install next-auth mongoose
+npm install cloudinary next-cloudinary
+npm install @getbrevo/brevo
+npm install @tanstack/react-query @tanstack/react-table
+npm install react-hook-form zod @hookform/resolvers
+npm install @react-pdf/renderer exceljs
+npm install zustand idb
+npm install tailwindcss postcss autoprefixer
+npx shadcn@latest init
+12. Suggested Build Phases
+Phase Scope
+1 Project scaffold, MongoDB connection, NextAuth, PWA manifest/service worker
+2 Faculty, Department, Curriculum, Course modules (CRUD + UI)
+3 Examiner Report module
+4 Student module + Lectures Calendar + Exam Timetable
+5 Student Reports pipeline (multi-step wizard) + General Report aggregation
+6 Submit flow + PDF/Excel export (react-pdf, exceljs)
+7 Cloudinary uploads (avatars, attachments, curriculum docs)
+8 Brevo transactional emails + reminder cron
+9 Offline caching, IndexedDB draft sync, install prompts
+10 QA on low-end Android devices, performance audit, deploy to Vercel
+Prepared as the complete architecture, data model, and API reference for the Unizik
+Postgraduate LMS Report Portal build.
