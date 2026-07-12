@@ -1,5 +1,6 @@
 import Credentials from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/db/connectDB";
+import { verifyPassword } from "@/lib/auth";
 import User from "@/models/User";
 
 export const authOptions = {
@@ -19,9 +20,14 @@ export const authOptions = {
         }
 
         await connectDB();
-        const user = await User.findOne({ email }).lean();
+        const user = await User.findOne({ email }).select("+password").lean();
 
-        if (!user || !user.isActive || password !== user.password) {
+        if (!user || !user.isActive) {
+          return null;
+        }
+
+        const isValidPassword = await verifyPassword(password, user.password || "");
+        if (!isValidPassword) {
           return null;
         }
 

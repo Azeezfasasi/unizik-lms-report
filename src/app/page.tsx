@@ -1,81 +1,74 @@
 import Link from "next/link";
+// import { Topbar } from "@/components/layout/Topbar";
 
 const features = [
-  { title: "Faculty and departments", description: "Organize academic structure, owners, and department programmes." },
-  { title: "Lectures & exam timetable", description: "Stay on top of course schedules and reporting milestones." },
-  { title: "Export to PDF or Excel", description: "Generate one-tap summaries suitable for review or submission." },
+  { title: "Faculty and departments", description: "Organize the full academic structure" },
+  { title: "Lectures and exam timetable", description: "Keep every schedule in sync" },
+  { title: "Export to PDF or Excel", description: "One-tap general reports" },
 ];
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50">
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-10 sm:px-8 lg:px-12">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <span className="inline-flex items-center rounded-full bg-teal-500/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-teal-300">
-                Postgraduate School
-              </span>
-              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Postgraduate LMS Report Portal
-              </h1>
-              <p className="max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-                Track curriculum, lectures, exam timetables, and generate reports in one modern academic portal designed for both mobile and desktop.
-              </p>
-            </div>
+    <main className="min-h-screen bg-white text-slate-900">
+      {/* <Topbar /> */}
+      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        <div className="mt-10 grid gap-8 lg:grid-cols-2 lg:items-center">
+          <div>
+            <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">Postgraduate school</span>
+            <h1 className="mt-6 text-4xl font-bold leading-tight">One portal for postgraduate reporting</h1>
+            <p className="mt-4 max-w-lg text-base text-slate-600">Manage faculties, curriculum, lecture calendars, and examination timetables, then generate and export general reports in a click.</p>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link href="/login" className="inline-flex justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-slate-100">
-                Login to portal
-              </Link>
-              <Link href="/dashboard" className="inline-flex justify-center rounded-full border border-slate-700 bg-slate-900/90 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-teal-500 hover:text-white">
-                Learn more
-              </Link>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {features.map((feature) => (
-                <div key={feature.title} className="rounded-3xl border border-slate-800/90 bg-slate-900/80 p-4">
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-300">{feature.title}</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-400">{feature.description}</p>
-                </div>
-              ))}
+            <div className="mt-8 flex items-center gap-4">
+              <Link href="/dashboard" className="inline-flex items-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white">Get started</Link>
+              <Link href="#features" className="inline-flex items-center rounded-full border border-slate-200 px-6 py-3 text-sm font-medium text-slate-700">See how it works</Link>
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-slate-800 bg-slate-900/80 p-6 shadow-2xl sm:p-8">
-            <div className="rounded-[28px] border border-slate-800 bg-slate-950/90 p-6">
-              <div className="flex items-center justify-between rounded-3xl bg-slate-900 px-4 py-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-teal-300">Unizik LMS</p>
-                  <p className="mt-2 text-xl font-semibold text-white">Academic Reporting</p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-500 text-slate-950">U</div>
+          <div>
+            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">General report preview</h3>
+                <button className="text-slate-400">📄</button>
               </div>
 
-              <div className="mt-8 space-y-5">
-                <div className="rounded-3xl bg-slate-900/95 p-5">
-                  <p className="text-sm font-semibold text-teal-300">What you can do</p>
-                  <ul className="mt-4 space-y-3 text-sm text-slate-400">
-                    <li>• Monitor courses, reports, and academic workflows</li>
-                    <li>• Manage faculty, departments, and curriculum details</li>
-                    <li>• Export submission-ready PDF/Excel summaries</li>
-                  </ul>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-3xl bg-slate-900/95 p-4">
-                    <p className="text-sm text-slate-400">Mobile-first layout</p>
-                    <p className="mt-2 text-sm font-semibold text-white">Clean card stack for small screens</p>
-                  </div>
-                  <div className="rounded-3xl bg-slate-900/95 p-4">
-                    <p className="text-sm text-slate-400">Action-ready</p>
-                    <p className="mt-2 text-sm font-semibold text-white">Login, explore modules, and review data quickly</p>
-                  </div>
-                </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">Curriculum<br/><span className="font-semibold">M.Sc CS</span></div>
+                <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">Exams<br/><span className="font-semibold">6 scheduled</span></div>
+              </div>
+
+              <div className="mt-6 h-28 rounded-lg border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-300"><path d="M3 12h18M3 6h18M3 18h18" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </div>
             </div>
           </div>
         </div>
+
+        <div className="mt-12 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-8">
+            <div>
+              <p className="text-2xl font-semibold">18</p>
+              <p className="text-sm text-slate-500">Faculties</p>
+            </div>
+            <div>
+              <p className="text-2xl font-semibold">126</p>
+              <p className="text-sm text-slate-500">Departments</p>
+            </div>
+            <div>
+              <p className="text-2xl font-semibold">4.2k</p>
+              <p className="text-sm text-slate-500">Reports filed</p>
+            </div>
+          </div>
+        </div>
+
+        <section id="features" className="mt-10 grid gap-6 sm:grid-cols-3">
+          {features.map((f) => (
+            <div key={f.title} className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="mb-3 h-10 w-10 rounded-lg bg-sky-50 flex items-center justify-center text-sky-700">🏫</div>
+              <h4 className="text-base font-semibold">{f.title}</h4>
+              <p className="mt-2 text-sm text-slate-500">{f.description}</p>
+            </div>
+          ))}
+        </section>
       </div>
     </main>
   );
