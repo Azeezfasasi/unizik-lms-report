@@ -10,24 +10,43 @@ export default function LoginCard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"success" | "error" | "info">("info");
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    setMessageTone("info");
     setMessage("Signing you in...");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/dashboard",
+      });
 
-    if (result?.ok) {
-      router.push("/dashboard");
-      router.refresh();
+      if (result?.ok) {
+        setMessageTone("success");
+        setMessage("Signed in successfully. Redirecting...");
+        // navigate immediately — use callbackUrl or fallback to dashboard
+        try {
+          await router.push(result?.url ?? "/dashboard");
+        } catch {
+          window.location.href = result?.url ?? "/dashboard";
+        }
+        return;
+      }
+
+      setMessageTone("error");
+      setMessage(result?.error === "CredentialsSignin"
+        ? "Invalid email or password."
+        : "Unable to sign in. Check your email, password and account status.");
+      return;
+    } catch (err) {
+      setMessageTone("error");
+      setMessage("Unable to sign in. Please try again.");
       return;
     }
-
-    setMessage("Unable to sign in. Check your email, password and account status.");
   }
 
   return (
@@ -70,7 +89,19 @@ export default function LoginCard() {
         </button>
       </form>
 
-      {message ? <p className="mt-5 text-sm text-rose-600">{message}</p> : null}
+      {message ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className={`mt-5 rounded-2xl border px-4 py-3 text-sm ${messageTone === "error"
+            ? "border-rose-200 bg-rose-50 text-rose-700"
+            : messageTone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-slate-200 bg-slate-50 text-slate-600"}`}
+        >
+          {message}
+        </p>
+      ) : null}
 
       <div className="mt-6 text-sm text-slate-600">
         Don&apos;t have an account? <Link href="/register" className="font-semibold text-slate-950 hover:text-teal-500">Register</Link>

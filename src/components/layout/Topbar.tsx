@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
 
 const centerNav = [
   { href: "#features", label: "Features" },
@@ -12,6 +14,11 @@ const centerNav = [
 
 export function Topbar() {
   const [open, setOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
+
+  const userName = session?.user?.name || "User";
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md">
@@ -33,14 +40,62 @@ export function Topbar() {
 
         <div className="flex items-center gap-3">
           <div className="hidden md:flex md:items-center md:gap-3">
-            <Link href="/login" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
-              Login to portal
-            </Link>
-          </div>
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50"
+                >
+                  <div className="relative h-8 w-8 rounded-full border border-slate-200 bg-slate-100">
+                    <Image
+                      src="/logo.svg"
+                      alt="UNIZIK logo"
+                      fill
+                      className="rounded-full"
+                    />
+                  </div>
+                  <span>{userName}</span>
+                </button>
 
+                {dropdownOpen ? (
+                  <div className="absolute right-0 mt-3 w-48 rounded-3xl border border-slate-200 bg-white p-3 shadow-lg shadow-slate-900/5">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="block rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/settings/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="mt-1 block rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="mt-2 w-full rounded-2xl bg-slate-950 px-3 py-2 text-left text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                      Log out
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <Link href="/login" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+                Login to portal
+              </Link>
+            )}
+          </div>
           <button
             type="button"
-            onClick={() => setOpen(!open)}
+            onClick={() => {
+              // trigger sidebar toggle via window event for the Sidebar component
+              window.dispatchEvent(new CustomEvent('toggleSidebar'));
+            }}
             className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition md:hidden"
             aria-label="Open navigation"
           >
@@ -57,9 +112,30 @@ export function Topbar() {
                 {link.label}
               </a>
             ))}
-            <Link href="/login" onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
-              Login to portal
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+                  Dashboard
+                </Link>
+                <Link href="/settings/profile" onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+                  Profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    signOut({ callbackUrl: "/" });
+                  }}
+                  className="w-full rounded-2xl px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <Link href="/login" onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+                Login to portal
+              </Link>
+            )}
           </div>
         </div>
       ) : null}

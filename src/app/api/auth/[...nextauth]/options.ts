@@ -2,8 +2,12 @@ import Credentials from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/db/connectDB";
 import { verifyPassword } from "@/lib/auth";
 import User from "@/models/User";
+import type { NextAuthOptions } from "next-auth";
 
-export const authOptions = {
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "dev-nextauth-secret-change-me";
+
+export const authOptions: NextAuthOptions = {
+  secret: authSecret,
   providers: [
     Credentials({
       name: "credentials",
@@ -47,14 +51,14 @@ export const authOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, user }: { token: any; user: any }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;

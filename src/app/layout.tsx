@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/providers/SessionProvider";
 import "./globals.css";
 import { Topbar } from "@/components/layout/Topbar";
+import MaybeDashboardHeader from "@/components/layout/MaybeDashboardHeader";
 
 export const viewport = {
   themeColor: "#0f172a",
@@ -34,8 +35,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Topbar />
-        <AuthSessionProvider>{children}</AuthSessionProvider>
+        <AuthSessionProvider>
+          <Topbar />
+          <MaybeDashboardHeader />
+          {children}
+        </AuthSessionProvider>
       </body>
     </html>
   );

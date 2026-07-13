@@ -15,24 +15,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[32px] border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-600 p-6 text-white shadow-2xl sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-sm uppercase tracking-[0.3em] text-teal-200">Dashboard</p>
-            <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">UNIZIK Postgraduate LMS Reporting Portal</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-teal-100/90">Monitor curriculum health, examiner evaluations, student workflow, and export-ready summaries from one responsive workspace.</p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:w-auto">
-            <Link href="/curriculum" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
-              New curriculum
-            </Link>
-            <Link href="/reports" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
-              Review reports
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* Header is rendered in the (dashboard) layout so page content starts below it */}
 
       <OfflineBanner />
 

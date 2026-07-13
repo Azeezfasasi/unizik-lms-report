@@ -9,19 +9,33 @@ export default function RegisterCard() {
   const [faculty, setFaculty] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"success" | "error" | "info">("info");
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: fullName, email, faculty, password }),
-    });
-    if (res.ok) {
-      setMessage("Account created. Check your email to activate.");
-      return;
+    setMessageTone("info");
+    setMessage("Creating your account...");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: fullName, email, faculty, password }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessageTone("success");
+        setMessage(data.message || "Account created. Check your email to activate.");
+        return;
+      }
+
+      setMessageTone("error");
+      setMessage(data.message || "Unable to create account right now.");
+    } catch {
+      setMessageTone("error");
+      setMessage("Unable to create account right now. Please try again.");
     }
-    setMessage("Unable to create account right now.");
   }
 
   return (
@@ -50,7 +64,7 @@ export default function RegisterCard() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-            placeholder="name@unizik.edu.ng"
+            placeholder="E.g. name@unizik.edu.ng"
           />
         </div>
 
@@ -83,7 +97,19 @@ export default function RegisterCard() {
         </button>
       </form>
 
-      {message ? <p className="mt-5 text-sm text-slate-600">{message}</p> : null}
+      {message ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className={`mt-5 rounded-2xl border px-4 py-3 text-sm ${messageTone === "error"
+            ? "border-rose-200 bg-rose-50 text-rose-700"
+            : messageTone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-slate-200 bg-slate-50 text-slate-600"}`}
+        >
+          {message}
+        </p>
+      ) : null}
 
       <div className="mt-6 text-sm text-slate-600">
         Already have an account? <Link href="/login" className="font-semibold text-slate-950 hover:text-teal-500">Log in</Link>

@@ -6,16 +6,33 @@ import { FormEvent, useState } from "react";
 export default function ForgotCard() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"success" | "error" | "info">("info");
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const response = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    const data = await response.json();
-    setMessage(data.message || "Reset request received.");
+    setMessageTone("info");
+    setMessage("Sending reset link...");
+
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessageTone("success");
+        setMessage(data.message || "Reset instructions sent.");
+        return;
+      }
+
+      setMessageTone("error");
+      setMessage(data.message || "Unable to issue reset request.");
+    } catch {
+      setMessageTone("error");
+      setMessage("Unable to issue reset request. Please try again.");
+    }
   }
 
   return (
@@ -43,7 +60,19 @@ export default function ForgotCard() {
         </button>
       </form>
 
-      {message ? <p className="mt-5 text-sm text-slate-600">{message}</p> : null}
+      {message ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className={`mt-5 rounded-2xl border px-4 py-3 text-sm ${messageTone === "error"
+            ? "border-rose-200 bg-rose-50 text-rose-700"
+            : messageTone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-slate-200 bg-slate-50 text-slate-600"}`}
+        >
+          {message}
+        </p>
+      ) : null}
 
       <div className="mt-6 text-sm text-slate-600">
         <Link href="/login" className="font-semibold text-slate-950 hover:text-teal-500">Back to sign in</Link>
