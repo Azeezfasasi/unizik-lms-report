@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { faculties } from "@/lib/mockData";
+import { getFaculties } from "@/lib/data/portal";
 
-export default function StudentReportsPage() {
+export default async function StudentReportsPage() {
+  const faculties = await getFaculties();
+
   return (
     <div className="space-y-6">
       <div>

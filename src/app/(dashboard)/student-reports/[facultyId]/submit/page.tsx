@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { StepperNav } from "@/components/shared/StepperNav";
 import { ExportButtons } from "@/components/shared/ExportButtons";
-import { getFacultyById } from "@/lib/mockData";
+import { getFacultyById } from "@/lib/data/portal";
 
-export default function SubmitReportPage({ params }: { params: { facultyId: string } }) {
-  const faculty = getFacultyById(params.facultyId);
+export default async function SubmitReportPage({ params }: { params: Promise<{ facultyId: string }> }) {
+  const { facultyId } = await params;
+  const faculty = await getFacultyById(facultyId);
 
   if (!faculty) {
     return <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">Faculty not found.</div>;

@@ -42,7 +42,7 @@ export default function LoginCard() {
         ? "Invalid email or password."
         : "Unable to sign in. Check your email, password and account status.");
       return;
-    } catch (err) {
+    } catch {
       setMessageTone("error");
       setMessage("Unable to sign in. Please try again.");
       return;

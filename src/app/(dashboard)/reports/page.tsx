@@ -15,7 +15,7 @@ export default async function ReportsPage() {
       </div>
 
       <div className="grid gap-4">
-        {reports.map((report: any) => (
+        {reports.map((report) => (
           <div key={report.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>

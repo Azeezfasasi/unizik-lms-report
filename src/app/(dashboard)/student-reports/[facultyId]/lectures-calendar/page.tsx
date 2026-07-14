@@ -1,20 +1,23 @@
 import Link from "next/link";
 import { StepperNav } from "@/components/shared/StepperNav";
-import { curriculums, departments, getDepartmentById, getFacultyById } from "@/lib/mockData";
+import { getCurriculumsByFacultyId, getDepartmentsByFacultyId, getFacultyById } from "@/lib/data/portal";
 
-export default function LecturesCalendarPage({ params }: { params: { facultyId: string } }) {
-  const faculty = getFacultyById(params.facultyId);
-  const facultyDepartments = departments.filter((department) => department.facultyId === params.facultyId);
-  const facultyCurriculums = curriculums.filter((curriculum) => facultyDepartments.some((department) => department.id === curriculum.departmentId));
+export default async function LecturesCalendarPage({ params }: { params: Promise<{ facultyId: string }> }) {
+  const { facultyId } = await params;
+  const faculty = await getFacultyById(facultyId);
+  const facultyCurriculums = await getCurriculumsByFacultyId(facultyId);
+  const facultyDepartments = await getDepartmentsByFacultyId(facultyId);
 
   if (!faculty) {
     return <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">Faculty not found.</div>;
   }
 
+  const deptMap = Object.fromEntries(facultyDepartments.map(d => [String(d.id), d]));
+
   const sampleSchedule = facultyCurriculums.slice(0, 2).map((curriculum) => ({
     id: curriculum.id,
     title: `${curriculum.programName} – Lecture Week 1`,
-    detail: `${getDepartmentById(curriculum.departmentId)?.name ?? "Department"} • Review of academic calendar and teaching delivery`,
+    detail: `${deptMap[String(curriculum.departmentId)]?.name ?? "Department"} • Review of academic calendar and teaching delivery`,
   }));
 
   return (

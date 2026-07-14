@@ -1,14 +1,17 @@
 import Link from "next/link";
-import { curriculums, departments, getDepartmentById, getFacultyById } from "@/lib/mockData";
+import { getCurriculumsByFacultyId, getDepartmentsByFacultyId, getFacultyById } from "@/lib/data/portal";
 
-export default function StudentReportsCurriculumPage({ params }: { params: { facultyId: string } }) {
-  const faculty = getFacultyById(params.facultyId);
-  const facultyDepartments = departments.filter((department) => department.facultyId === params.facultyId);
-  const facultyCurriculums = curriculums.filter((curriculum) => facultyDepartments.some((department) => department.id === curriculum.departmentId));
+export default async function StudentReportsCurriculumPage({ params }: { params: Promise<{ facultyId: string }> }) {
+  const { facultyId } = await params;
+  const faculty = await getFacultyById(facultyId);
+  const facultyCurriculums = await getCurriculumsByFacultyId(facultyId);
+  const facultyDepartments = await getDepartmentsByFacultyId(facultyId);
 
   if (!faculty) {
     return <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">Faculty not found.</div>;
   }
+
+  const deptMap = Object.fromEntries(facultyDepartments.map(d => [String(d.id), d]));
 
   return (
     <div className="space-y-6">
@@ -19,7 +22,7 @@ export default function StudentReportsCurriculumPage({ params }: { params: { fac
 
       <div className="grid gap-4 lg:grid-cols-2">
         {facultyCurriculums.map((curriculum) => {
-          const department = getDepartmentById(curriculum.departmentId);
+          const department = deptMap[String(curriculum.departmentId)];
           return (
             <Link key={curriculum.id} href={`/student-reports/${faculty.id}/lectures-calendar`} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-teal-500">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-600">{department?.name ?? "Department"}</p>

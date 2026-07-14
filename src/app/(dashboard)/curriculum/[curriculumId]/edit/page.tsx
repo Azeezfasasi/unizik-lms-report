@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, use, useEffect, useState } from "react";
 
-export default function EditCurriculumPage({ params }: { params: { curriculumId: string } }) {
+export default function EditCurriculumPage({ params }: { params: Promise<{ curriculumId: string }> }) {
+  const { curriculumId } = use(params);
   const router = useRouter();
   const [programName, setProgramName] = useState("");
   const [level, setLevel] = useState("");
@@ -12,7 +13,7 @@ export default function EditCurriculumPage({ params }: { params: { curriculumId:
 
   useEffect(() => {
     async function loadCurriculum() {
-      const response = await fetch(`/api/curriculum/${params.curriculumId}`);
+      const response = await fetch(`/api/curriculum/${curriculumId}`);
       const data = await response.json();
       setProgramName(data.programName ?? "");
       setLevel(data.level ?? "");
@@ -20,13 +21,13 @@ export default function EditCurriculumPage({ params }: { params: { curriculumId:
     }
 
     loadCurriculum();
-  }, [params.curriculumId]);
+  }, [curriculumId]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setMessage("Updating curriculum...");
 
-    const response = await fetch(`/api/curriculum/${params.curriculumId}`, {
+    const response = await fetch(`/api/curriculum/${curriculumId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ programName, level, version }),

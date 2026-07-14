@@ -1,20 +1,23 @@
 import Link from "next/link";
 import { StepperNav } from "@/components/shared/StepperNav";
-import { curriculums, departments, getDepartmentById, getFacultyById } from "@/lib/mockData";
+import { getCurriculumsByFacultyId, getDepartmentsByFacultyId, getFacultyById } from "@/lib/data/portal";
 
-export default function ExamTimetablePage({ params }: { params: { facultyId: string } }) {
-  const faculty = getFacultyById(params.facultyId);
-  const facultyDepartments = departments.filter((department) => department.facultyId === params.facultyId);
-  const facultyCurriculums = curriculums.filter((curriculum) => facultyDepartments.some((department) => department.id === curriculum.departmentId));
+export default async function ExamTimetablePage({ params }: { params: Promise<{ facultyId: string }> }) {
+  const { facultyId } = await params;
+  const faculty = await getFacultyById(facultyId);
+  const facultyCurriculums = await getCurriculumsByFacultyId(facultyId);
+  const facultyDepartments = await getDepartmentsByFacultyId(facultyId);
 
   if (!faculty) {
     return <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">Faculty not found.</div>;
   }
 
+  const deptMap = Object.fromEntries(facultyDepartments.map(d => [String(d.id), d]));
+
   const examEntries = facultyCurriculums.map((curriculum) => ({
     id: curriculum.id,
     title: `${curriculum.programName} – Examination Window`,
-    detail: `${getDepartmentById(curriculum.departmentId)?.name ?? "Department"} • Venue reserved and invigilator assigned`,
+    detail: `${deptMap[String(curriculum.departmentId)]?.name ?? "Department"} • Venue reserved and invigilator assigned`,
   }));
 
   return (

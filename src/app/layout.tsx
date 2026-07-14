@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/providers/SessionProvider";
 import "./globals.css";
-import { Topbar } from "@/components/layout/Topbar";
+import MaybeTopbar from "@/components/layout/MaybeTopbar";
 import MaybeDashboardHeader from "@/components/layout/MaybeDashboardHeader";
 
 export const viewport = {
@@ -36,7 +36,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthSessionProvider>
-          <Topbar />
+          <MaybeTopbar />
           <MaybeDashboardHeader />
           {children}
         </AuthSessionProvider>

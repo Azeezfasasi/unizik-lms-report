@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { StepperNav } from "@/components/shared/StepperNav";
-import { curriculums, departments, getDepartmentById, getFacultyById } from "@/lib/mockData";
+import { getCurriculumsByFacultyId, getDepartmentsByFacultyId, getFacultyById } from "@/lib/data/portal";
 
-export default function GeneralReportPage({ params }: { params: { facultyId: string } }) {
-  const faculty = getFacultyById(params.facultyId);
-  const facultyDepartments = departments.filter((department) => department.facultyId === params.facultyId);
-  const facultyCurriculums = curriculums.filter((curriculum) => facultyDepartments.some((department) => department.id === curriculum.departmentId));
+export default async function GeneralReportPage({ params }: { params: Promise<{ facultyId: string }> }) {
+  const { facultyId } = await params;
+  const faculty = await getFacultyById(facultyId);
+  const facultyDepartments = await getDepartmentsByFacultyId(facultyId);
+  const facultyCurriculums = await getCurriculumsByFacultyId(facultyId);
 
   if (!faculty) {
     return <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">Faculty not found.</div>;
   }
+
+  const deptMap = Object.fromEntries(facultyDepartments.map(d => [String(d.id), d]));
 
   return (
     <div className="space-y-6">
@@ -41,7 +44,7 @@ export default function GeneralReportPage({ params }: { params: { facultyId: str
           {facultyCurriculums.map((curriculum) => (
             <div key={curriculum.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
               <p className="font-semibold text-slate-900">{curriculum.programName}</p>
-              <p className="mt-1 text-sm text-slate-600">{getDepartmentById(curriculum.departmentId)?.name ?? "Department"} • Version {curriculum.version}</p>
+              <p className="mt-1 text-sm text-slate-600">{deptMap[String(curriculum.departmentId)]?.name ?? "Department"} • Version {curriculum.version}</p>
             </div>
           ))}
         </div>
