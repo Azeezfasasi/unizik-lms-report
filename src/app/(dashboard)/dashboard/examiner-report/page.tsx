@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getServerSession, type Session } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import {
   CourseItem,
   DepartmentItem,
@@ -9,6 +11,15 @@ import {
   getExaminerReports,
   getFaculties,
 } from "@/lib/data/portal";
+
+const statusTone: Record<string, string> = {
+  DRAFT: "bg-slate-100 text-slate-600",
+  SUBMITTED: "bg-sky-100 text-sky-700",
+  UNDER_REVIEW: "bg-amber-100 text-amber-700",
+  REVISION_REQUESTED: "bg-orange-100 text-orange-700",
+  APPROVED: "bg-emerald-100 text-emerald-700",
+  REJECTED: "bg-red-100 text-red-700",
+};
 
 function scoreTone(score?: number) {
   if (score === undefined || score === null) return "bg-slate-100 text-slate-500";
@@ -23,13 +34,19 @@ function formatDate(value: unknown) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+const MODERATOR_ROLES = ["ADMIN", "FACULTY_OFFICER"];
+
 export default async function ExaminerReportPage() {
-  const [examinerReports, faculties, departments, courses]: [
+  const [examinerReports, faculties, departments, courses, session]: [
     ExaminerReportItem[],
     FacultyItem[],
     DepartmentItem[],
     CourseItem[],
-  ] = await Promise.all([getExaminerReports(), getFaculties(), getDepartments(), getCourses()]);
+    Session | null,
+  ] = await Promise.all([getExaminerReports(), getFaculties(), getDepartments(), getCourses(), getServerSession(authOptions)]);
+
+  const userRole = session?.user?.role;
+  const userId = session?.user?.id;
 
   const facultyMap = new Map<string, string>(faculties.map((faculty: FacultyItem) => [faculty.id, faculty.name]));
   const departmentMap = new Map<string, string>(
@@ -49,15 +66,33 @@ export default async function ExaminerReportPage() {
             {examinerReports.length} {examinerReports.length === 1 ? "report" : "reports"} on record
           </p>
         </div>
-        <Link
-          href="/dashboard/examiner-report/new"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 sm:self-start"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          New report
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {userRole && MODERATOR_ROLES.includes(userRole) ? (
+            <>
+              <Link
+                href="/dashboard/examiner-report/assignments"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-teal-500 hover:text-teal-600"
+              >
+                Teaching assignments
+              </Link>
+              <Link
+                href="/dashboard/examiner-report/compliance"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-teal-500 hover:text-teal-600"
+              >
+                Compliance report
+              </Link>
+            </>
+          ) : null}
+          <Link
+            href="/dashboard/examiner-report/new"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New report
+          </Link>
+        </div>
       </div>
 
       {examinerReports.length > 0 ? (
@@ -68,7 +103,10 @@ export default async function ExaminerReportPage() {
               ? departmentMap.get(report.departmentId) ?? "Department"
               : null;
             const courseName = report.courseId ? courseMap.get(report.courseId) ?? "Course" : null;
-            const score = (report as ExaminerReportItem & { score?: number }).score;
+            const score = report.score;
+            const canAccessMarkingScheme =
+              Boolean(userRole) &&
+              (MODERATOR_ROLES.includes(userRole ?? "") || (Boolean(userId) && report.moderatorId === userId));
 
             return (
               <div
@@ -93,7 +131,21 @@ export default async function ExaminerReportPage() {
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                    {report.status ? (
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          statusTone[report.status] ?? "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {report.status.replace(/_/g, " ")}
+                      </span>
+                    ) : null}
+                    {report.malpracticeFlagged ? (
+                      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+                        Malpractice flagged
+                      </span>
+                    ) : null}
                     {score !== undefined ? (
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${scoreTone(
@@ -123,6 +175,17 @@ export default async function ExaminerReportPage() {
                         <path d="M6 4v18" />
                       </svg>
                       {courseName}
+                    </span>
+                  ) : null}
+                  {report.academicSession ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                      {report.academicSession}
+                      {report.semester ? ` · ${report.semester}` : ""}
+                    </span>
+                  ) : null}
+                  {report.examType ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                      {report.examType}
                     </span>
                   ) : null}
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
@@ -155,6 +218,18 @@ export default async function ExaminerReportPage() {
                     </svg>
                     Download Word
                   </a>
+                  {canAccessMarkingScheme && report.markingSchemeUrl ? (
+                    <a
+                      href={`/api/examiner-reports/${report.id}/marking-scheme`}
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600 xs:flex-none"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
+                        <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                      </svg>
+                      Marking scheme
+                    </a>
+                  ) : null}
                 </div>
               </div>
             );

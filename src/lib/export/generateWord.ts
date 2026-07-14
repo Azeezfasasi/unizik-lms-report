@@ -13,7 +13,7 @@ function formatDate(value: string | Date | undefined) {
 export function generateWordBuffer(report: ExaminerReportItem) {
   const submittedAt = formatDate(report.submittedAt);
   const comments = report.comments ? escapeHtml(report.comments) : "No comments provided.";
-  const attachmentUrl = report.attachmentUrl ? escapeHtml(report.attachmentUrl) : "None";
+  const attachmentUrl = report.questionPaperUrl ? escapeHtml(report.questionPaperUrl) : "None";
 
   const html = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
@@ -37,6 +37,10 @@ export function generateWordBuffer(report: ExaminerReportItem) {
       <p><span class="field-label">Faculty ID:</span> ${escapeHtml(String(report.facultyId ?? "N/A"))}</p>
       <p><span class="field-label">Department ID:</span> ${escapeHtml(String(report.departmentId ?? "N/A"))}</p>
       <p><span class="field-label">Course ID:</span> ${escapeHtml(String(report.courseId ?? "N/A"))}</p>
+      <p><span class="field-label">Academic Session:</span> ${escapeHtml(String(report.academicSession ?? "N/A"))}</p>
+      <p><span class="field-label">Semester:</span> ${escapeHtml(String(report.semester ?? "N/A"))}</p>
+      <p><span class="field-label">Exam Type:</span> ${escapeHtml(String(report.examType ?? "N/A"))}</p>
+      <p><span class="field-label">Status:</span> ${escapeHtml(String(report.status ?? "N/A"))}</p>
       <p><span class="field-label">Score:</span> ${escapeHtml(String(report.score ?? "N/A"))}</p>
       <p><span class="field-label">Submitted:</span> ${submittedAt}</p>
     </div>
@@ -45,7 +49,7 @@ export function generateWordBuffer(report: ExaminerReportItem) {
       <p>${comments}</p>
     </div>
     <div class="section">
-      <h2>Attachment</h2>
+      <h2>Question Paper</h2>
       <p>${attachmentUrl}</p>
     </div>
   </body>

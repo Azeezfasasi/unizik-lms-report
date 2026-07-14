@@ -23,6 +23,23 @@ interface CourseOption {
   curriculumId?: string;
 }
 
+interface LecturerOption {
+  id: string;
+  name: string;
+  role: string;
+}
+
+const SEMESTERS = ["FIRST", "SECOND"] as const;
+const EXAM_TYPES = ["CA", "EXAM", "MAKEUP", "RESIT"] as const;
+
+function defaultAcademicSession() {
+  const now = new Date();
+  const year = now.getFullYear();
+  // Academic sessions typically start around September/October.
+  const startYear = now.getMonth() >= 8 ? year : year - 1;
+  return `${startYear}/${startYear + 1}`;
+}
+
 function scoreBand(numericScore: number) {
   if (Number.isNaN(numericScore)) {
     return { label: "—", text: "text-slate-500", chip: "bg-slate-100 text-slate-600" };
@@ -68,21 +85,30 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
   );
 }
 
+
 export default function NewExaminerReportPage() {
   const router = useRouter();
-  const [examinerName, setExaminerName] = useState("");
+  const [isExternalExaminer, setIsExternalExaminer] = useState(false);
+  const [lecturerId, setLecturerId] = useState("");
+  const [externalExaminerName, setExternalExaminerName] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [courseId, setCourseId] = useState("");
+  const [academicSession, setAcademicSession] = useState(defaultAcademicSession);
+  const [semester, setSemester] = useState<(typeof SEMESTERS)[number]>("FIRST");
+  const [examType, setExamType] = useState<(typeof EXAM_TYPES)[number]>("EXAM");
+  const [questionPaperUrl, setQuestionPaperUrl] = useState("");
+  const [markingSchemeUrl, setMarkingSchemeUrl] = useState("");
+  const [numberOfQuestions, setNumberOfQuestions] = useState("");
   const [comments, setComments] = useState("");
   const [score, setScore] = useState("80");
-  const [attachmentUrl, setAttachmentUrl] = useState("");
   const [submittedAt, setSubmittedAt] = useState(() => new Date().toISOString().slice(0, 10));
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"info" | "success" | "error">("info");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
+  const [lecturers, setLecturers] = useState<LecturerOption[]>([]);
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
@@ -90,21 +116,37 @@ export default function NewExaminerReportPage() {
   useEffect(() => {
     async function loadOptions() {
       try {
-        const [facultiesResponse, departmentsResponse, curriculumsResponse, coursesResponse] = await Promise.all([
+        const [usersResponse, facultiesResponse, departmentsResponse, curriculumsResponse, coursesResponse] = await Promise.all([
+          fetch("/api/users"),
           fetch("/api/faculties"),
           fetch("/api/departments"),
           fetch("/api/curriculum"),
           fetch("/api/courses"),
         ]);
 
-        if (!facultiesResponse.ok || !departmentsResponse.ok || !curriculumsResponse.ok || !coursesResponse.ok) {
+        if (
+          !usersResponse.ok ||
+          !facultiesResponse.ok ||
+          !departmentsResponse.ok ||
+          !curriculumsResponse.ok ||
+          !coursesResponse.ok
+        ) {
           return;
         }
 
+        const usersData = await usersResponse.json();
         const facultiesData = await facultiesResponse.json();
         const departmentsData = await departmentsResponse.json();
         const curriculumsData = await curriculumsResponse.json();
         const coursesData = await coursesResponse.json();
+
+        const lecturerOptions: LecturerOption[] = usersData
+          .filter((user: { role: string }) => ["EXAMINER", "ADMIN", "FACULTY_OFFICER"].includes(user.role))
+          .map((user: { _id: string; name: string; role: string }) => ({
+            id: user._id,
+            name: user.name,
+            role: user.role,
+          }));
 
         const facultyOptions = facultiesData.map((faculty: { _id: string; name: string }) => ({
           id: faculty._id,
@@ -129,6 +171,7 @@ export default function NewExaminerReportPage() {
           departmentId: course.departmentId ?? curriculumDepartmentMap.get(course.curriculumId ?? "") ?? "",
         }));
 
+        setLecturers(lecturerOptions);
         setFaculties(facultyOptions);
         setDepartments(departmentOptions);
         setCourses(courseOptions);
@@ -137,6 +180,7 @@ export default function NewExaminerReportPage() {
         const defaultDepartmentId = departmentOptions.filter((department) => department.facultyId === defaultFacultyId)[0]?.id ?? "";
         const defaultCourseId = courseOptions.filter((course) => course.departmentId === defaultDepartmentId)[0]?.id ?? "";
 
+        setLecturerId(lecturerOptions[0]?.id ?? "");
         setFacultyId(defaultFacultyId);
         setDepartmentId(defaultDepartmentId);
         setCourseId(defaultCourseId);
@@ -169,21 +213,18 @@ export default function NewExaminerReportPage() {
   function validateForm() {
     const nextErrors: Record<string, string> = {};
 
-    if (!examinerName.trim()) {
-      nextErrors.examinerName = "Examiner name is required.";
+    if (isExternalExaminer) {
+      if (!externalExaminerName.trim()) {
+        nextErrors.externalExaminerName = "External examiner name is required.";
+      }
+    } else if (!lecturerId) {
+      nextErrors.lecturerId = "Select the lecturer who set the questions.";
     }
 
-    if (!facultyId) {
-      nextErrors.facultyId = "Select a faculty.";
-    }
-
-    if (!departmentId) {
-      nextErrors.departmentId = "Select a department.";
-    }
-
-    if (!courseId) {
-      nextErrors.courseId = "Select a course.";
-    }
+    if (!facultyId) nextErrors.facultyId = "Select a faculty.";
+    if (!departmentId) nextErrors.departmentId = "Select a department.";
+    if (!courseId) nextErrors.courseId = "Select a course.";
+    if (!academicSession.trim()) nextErrors.academicSession = "Academic session is required.";
 
     const numericScore = Number(score);
     if (score.trim() === "" || Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
@@ -198,14 +239,21 @@ export default function NewExaminerReportPage() {
   }
 
   function resetForm() {
-    setExaminerName("");
+    setIsExternalExaminer(false);
+    setLecturerId(lecturers[0]?.id ?? "");
+    setExternalExaminerName("");
     setFacultyId(faculties[0]?.id ?? "");
     const defaultDepartmentId = departments.filter((department) => department.facultyId === faculties[0]?.id)[0]?.id ?? "";
     setDepartmentId(defaultDepartmentId);
     setCourseId(courses.filter((course) => course.departmentId === defaultDepartmentId)[0]?.id ?? "");
+    setAcademicSession(defaultAcademicSession());
+    setSemester("FIRST");
+    setExamType("EXAM");
+    setQuestionPaperUrl("");
+    setMarkingSchemeUrl("");
+    setNumberOfQuestions("");
     setComments("");
     setScore("80");
-    setAttachmentUrl("");
     setSubmittedAt(new Date().toISOString().slice(0, 10));
     setErrors({});
     setMessage("");
@@ -230,13 +278,20 @@ export default function NewExaminerReportPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        examinerName,
+        lecturerId: isExternalExaminer ? undefined : lecturerId,
+        externalExaminerName: isExternalExaminer ? externalExaminerName : undefined,
         facultyId,
         departmentId,
         courseId,
+        academicSession,
+        semester,
+        examType,
+        questionPaperUrl: questionPaperUrl || undefined,
+        markingSchemeUrl: markingSchemeUrl || undefined,
+        numberOfQuestions: numberOfQuestions ? Number(numberOfQuestions) : undefined,
         comments,
         score: Number(score),
-        attachmentUrl,
+        status: "SUBMITTED",
         submittedAt: new Date(submittedAt).toISOString(),
       }),
     });
@@ -246,13 +301,14 @@ export default function NewExaminerReportPage() {
     if (response.ok) {
       setMessageTone("success");
       setMessage("Examiner report created successfully.");
-      router.push("/examiner-report");
+      router.push("/dashboard/examiner-report");
       router.refresh();
       return;
     }
 
+    const errorBody = await response.json().catch(() => null);
     setMessageTone("error");
-    setMessage("Unable to create examiner report right now.");
+    setMessage(errorBody?.message ?? "Unable to create examiner report right now.");
   }
 
   const filteredDepartments = useMemo(
@@ -299,18 +355,62 @@ export default function NewExaminerReportPage() {
           <form className="space-y-8" onSubmit={handleSubmit} noValidate>
             <section>
               <SectionHeading eyebrow="Step 1" title="Examiner" />
-              <label className="mb-2 block text-sm font-medium text-slate-700">Examiner name</label>
-              <input
-                value={examinerName}
-                onChange={(event) => {
-                  setExaminerName(event.target.value);
-                  setErrors((current) => ({ ...current, examinerName: "" }));
-                }}
-                className={`${baseInput} ${errors.examinerName ? errInput : okInput}`}
-                placeholder="Dr. S. Ibrahim"
-                required
-              />
-              <FieldError message={errors.examinerName} />
+
+              <label className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={isExternalExaminer}
+                  onChange={(event) => {
+                    setIsExternalExaminer(event.target.checked);
+                    setErrors((current) => ({ ...current, lecturerId: "", externalExaminerName: "" }));
+                  }}
+                  className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500/30"
+                />
+                External / guest examiner (no portal account)
+              </label>
+
+              {isExternalExaminer ? (
+                <>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">External examiner name</label>
+                  <input
+                    value={externalExaminerName}
+                    onChange={(event) => {
+                      setExternalExaminerName(event.target.value);
+                      setErrors((current) => ({ ...current, externalExaminerName: "" }));
+                    }}
+                    className={`${baseInput} ${errors.externalExaminerName ? errInput : okInput}`}
+                    placeholder="Dr. S. Ibrahim (external)"
+                  />
+                  <FieldError message={errors.externalExaminerName} />
+                </>
+              ) : (
+                <>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Lecturer</label>
+                  <div className="relative">
+                    <select
+                      value={lecturerId}
+                      disabled={optionsLoading}
+                      onChange={(event) => {
+                        setLecturerId(event.target.value);
+                        setErrors((current) => ({ ...current, lecturerId: "" }));
+                      }}
+                      className={`${baseInput} ${errors.lecturerId ? errInput : okInput} appearance-none pr-10 disabled:cursor-wait disabled:text-slate-400`}
+                    >
+                      {lecturers.length > 0 ? (
+                        lecturers.map((lecturer) => (
+                          <option key={lecturer.id} value={lecturer.id}>
+                            {lecturer.name} ({lecturer.role})
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">{optionsLoading ? "Loading lecturers..." : "No lecturers available"}</option>
+                      )}
+                    </select>
+                    <SelectChevron />
+                  </div>
+                  <FieldError message={errors.lecturerId} />
+                </>
+              )}
             </section>
 
             <section>
@@ -397,10 +497,100 @@ export default function NewExaminerReportPage() {
                 </div>
                 <FieldError message={errors.courseId} />
               </div>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Academic session</label>
+                  <input
+                    value={academicSession}
+                    onChange={(event) => {
+                      setAcademicSession(event.target.value);
+                      setErrors((current) => ({ ...current, academicSession: "" }));
+                    }}
+                    className={`${baseInput} ${errors.academicSession ? errInput : okInput}`}
+                    placeholder="2025/2026"
+                  />
+                  <FieldError message={errors.academicSession} />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Semester</label>
+                  <div className="relative">
+                    <select
+                      value={semester}
+                      onChange={(event) => setSemester(event.target.value as (typeof SEMESTERS)[number])}
+                      className={`${baseInput} ${okInput} appearance-none pr-10`}
+                    >
+                      {SEMESTERS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <SelectChevron />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Exam type</label>
+                  <div className="relative">
+                    <select
+                      value={examType}
+                      onChange={(event) => setExamType(event.target.value as (typeof EXAM_TYPES)[number])}
+                      className={`${baseInput} ${okInput} appearance-none pr-10`}
+                    >
+                      {EXAM_TYPES.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <SelectChevron />
+                  </div>
+                </div>
+              </div>
             </section>
 
             <section>
-              <SectionHeading eyebrow="Step 3" title="Evaluation" />
+              <SectionHeading eyebrow="Step 3" title="Question artifacts" />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Question paper URL</label>
+                  <input
+                    value={questionPaperUrl}
+                    onChange={(event) => setQuestionPaperUrl(event.target.value)}
+                    className={`${baseInput} ${okInput}`}
+                    placeholder="/documents/question-paper.pdf"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Marking scheme URL
+                    <span className="ml-1.5 text-xs font-normal text-slate-400">(answer key — access restricted)</span>
+                  </label>
+                  <input
+                    value={markingSchemeUrl}
+                    onChange={(event) => setMarkingSchemeUrl(event.target.value)}
+                    className={`${baseInput} ${okInput}`}
+                    placeholder="/documents/marking-scheme.pdf"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 sm:w-1/2 sm:pr-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Number of questions</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={numberOfQuestions}
+                  onChange={(event) => setNumberOfQuestions(event.target.value)}
+                  className={`${baseInput} ${okInput}`}
+                  placeholder="e.g. 5"
+                />
+              </div>
+            </section>
+
+            <section>
+              <SectionHeading eyebrow="Step 4" title="Evaluation" />
 
               <div className="mb-5">
                 <label className="mb-2 block text-sm font-medium text-slate-700">Comments</label>
@@ -449,37 +639,6 @@ export default function NewExaminerReportPage() {
                     </div>
                   </div>
                   <FieldError message={errors.score} />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">Attachment URL</label>
-                  <div className="relative">
-                    <svg viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400">
-                      <path
-                        d="M10.5 5.5L6.4 9.6a1.8 1.8 0 102.55 2.55l4.24-4.24a3.2 3.2 0 00-4.53-4.53L4.6 7.53a4.6 4.6 0 006.5 6.5"
-                        stroke="currentColor"
-                        strokeWidth="1.3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <input
-                      value={attachmentUrl}
-                      onChange={(event) => setAttachmentUrl(event.target.value)}
-                      className={`${baseInput} ${okInput} pl-10`}
-                      placeholder="/documents/report.pdf"
-                    />
-                  </div>
-                  {attachmentUrl ? (
-                    <a
-                      href={attachmentUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline"
-                    >
-                      Preview attachment
-                    </a>
-                  ) : null}
                 </div>
 
                 <div>
