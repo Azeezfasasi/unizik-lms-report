@@ -22,6 +22,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "UNIZIK Postgraduate LMS Report Portal",
   description: "A role-based academic reporting and tracking portal for UNIZIK postgraduate operations.",
+  icons: {
+    icon: "/unizik.png",
+    shortcut: "/unizik.png",
+    apple: "/unizik.png",
+  },
 };
 
 export default function RootLayout({
