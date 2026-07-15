@@ -200,7 +200,7 @@ export default function LoginCard() {
               Signing you in...
             </>
           ) : (
-            <>Signing you in</>
+            "Log in"
           )}
         </button>
       </form>
@@ -221,11 +221,12 @@ export default function LoginCard() {
         </p>
       ) : null}
 
-      <div className="mt-6 text-sm text-slate-600">
-        Don&apos;t have an account? <Link href="/register" className="font-semibold text-slate-950 idle:text-slate-950 hover:text-teal-500">
+      {/* <div className="mt-6 text-sm text-slate-600">
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="font-semibold text-slate-950 hover:text-teal-500">
           Register
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 }
