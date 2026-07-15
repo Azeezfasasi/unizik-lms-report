@@ -22,7 +22,7 @@ export default function NewDepartmentPage({ params }: { params: Promise<{ facult
 
     if (response.ok) {
       setMessage("Department created successfully.");
-      router.push(`/faculty-departments/${facultyId}`);
+      router.push(`/dashboard/faculty-departments/${facultyId}`);
       router.refresh();
       return;
     }

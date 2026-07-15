@@ -1,5 +1,6 @@
 import { getUsers } from "@/lib/data/portal";
 import Link from "next/link";
+import UserActions from "./_components/UserActions";
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -68,7 +69,8 @@ export default async function UsersPage() {
                   <tr className="border-b border-slate-200 bg-slate-50/80">
                     <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
                     <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Email</th>
-                    <th className="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Role</th>
+                    <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Role</th>
+                    <th className="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -85,10 +87,13 @@ export default async function UsersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">{user.email}</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase ${roleBadge(user.role)}`}>
                           {user.role}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <UserActions userId={user.id} />
                       </td>
                     </tr>
                   ))}
@@ -112,9 +117,12 @@ export default async function UsersPage() {
                     <p className="truncate text-sm text-slate-500">{user.email}</p>
                   </div>
                 </div>
-                <span className={`mt-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase ${roleBadge(user.role)}`}>
-                  {user.role}
-                </span>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase ${roleBadge(user.role)}`}>
+                    {user.role}
+                  </span>
+                  <UserActions userId={user.id} />
+                </div>
               </div>
             ))}
           </div>

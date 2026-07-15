@@ -48,7 +48,7 @@ export default function NewCurriculumPage() {
 
     if (response.ok) {
       setMessage("Curriculum created successfully.");
-      router.push("/curriculum");
+      router.push("/dashboard/curriculum");
       router.refresh();
       return;
     }

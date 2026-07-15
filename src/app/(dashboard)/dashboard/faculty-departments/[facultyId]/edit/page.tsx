@@ -38,7 +38,7 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
 
     if (response.ok) {
       setMessage("Faculty updated successfully.");
-      router.push(`/faculty-departments/${facultyId}`);
+      router.push(`/dashboard/faculty-departments/${facultyId}`);
       router.refresh();
       return;
     }

@@ -44,7 +44,7 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
 
     if (response.ok) {
       setMessage("User updated successfully.");
-      router.push(`/users/${userId}`);
+      router.push("/dashboard/users");
       router.refresh();
       return;
     }

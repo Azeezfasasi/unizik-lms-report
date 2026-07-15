@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import AssignmentActions from "./_components/AssignmentActions";
 import {
   CourseItem,
   getCourses,
@@ -61,6 +62,7 @@ export default async function TeachingAssignmentsPage() {
                 <th className="px-5 py-3">Course</th>
                 <th className="px-5 py-3">Session</th>
                 <th className="px-5 py-3">Semester</th>
+                <th className="px-5 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -74,6 +76,9 @@ export default async function TeachingAssignmentsPage() {
                     </td>
                     <td className="px-5 py-3 text-slate-600">{assignment.academicSession}</td>
                     <td className="px-5 py-3 text-slate-600">{assignment.semester}</td>
+                    <td className="px-5 py-3">
+                      <AssignmentActions assignmentId={assignment.id} />
+                    </td>
                   </tr>
                 );
               })}

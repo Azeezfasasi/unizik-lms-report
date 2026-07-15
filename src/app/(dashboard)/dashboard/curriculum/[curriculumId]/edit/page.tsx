@@ -62,7 +62,7 @@ export default function EditCurriculumPage({ params }: { params: Promise<{ curri
 
       if (!response.ok) throw new Error("Request failed");
 
-      router.push(`/curriculum/${curriculumId}`);
+      router.push(`/dashboard/curriculum/${curriculumId}`);
       router.refresh();
     } catch {
       setSaveStatus("error");

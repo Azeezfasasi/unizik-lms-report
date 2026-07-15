@@ -152,7 +152,7 @@ export default function NewUserPage() {
     if (response.ok) {
       setMessageTone("success");
       setMessage("User created successfully.");
-      router.push("/users");
+      router.push("/dashboard/users");
       router.refresh();
       return;
     }

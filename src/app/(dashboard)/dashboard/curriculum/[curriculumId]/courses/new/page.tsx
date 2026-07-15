@@ -41,7 +41,7 @@ export default function NewCoursePage({ params }: CourseFormProps) {
         throw new Error("Request failed");
       }
 
-      router.push(`/curriculum/${curriculumId}`);
+      router.push(`/dashboard/curriculum/${curriculumId}`);
       router.refresh();
     } catch {
       setStatus("error");
