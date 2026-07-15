@@ -36,7 +36,7 @@ export default function NewFacultyPage() {
         throw new Error("Request failed");
       }
 
-      router.push("/faculty-departments");
+      router.push("/dashboard/faculty-departments");
       router.refresh();
     } catch {
       setStatus("error");
