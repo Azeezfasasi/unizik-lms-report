@@ -177,8 +177,9 @@ export default function ProfileForm({ userId, initialName, initialEmail, role }:
               value={email}
               onChange={(e) => { setEmail(e.target.value); setProfileErrors((p) => ({ ...p, email: "" })); }}
               disabled={profileSubmitting}
-              className={`${baseInput} ${profileErrors.email ? errInput : okInput} disabled:bg-slate-50 disabled:text-slate-400`}
+              className={`${baseInput} ${profileErrors.email ? errInput : okInput} disabled:bg-slate-50 disabled:text-slate-400 cursor-not-allowed`}
               placeholder="ada@example.com"
+              readOnly
             />
             <FieldError message={profileErrors.email} />
           </div>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { getUserById } from "@/lib/data/portal";
 import ProfileForm from "./_components/ProfileForm";
 
 export default async function ProfilePage() {
@@ -10,7 +11,7 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const { id, name, email, role } = session.user;
+  const user = await getUserById(session.user.id);
 
   return (
     <div className="space-y-6">
@@ -21,10 +22,10 @@ export default async function ProfilePage() {
       </div>
 
       <ProfileForm
-        userId={id}
-        initialName={name ?? ""}
-        initialEmail={email ?? ""}
-        role={role ?? ""}
+        userId={session.user.id}
+        initialName={user?.name ?? session.user.name ?? ""}
+        initialEmail={user?.email ?? session.user.email ?? ""}
+        role={user?.role ?? session.user.role ?? ""}
       />
     </div>
   );

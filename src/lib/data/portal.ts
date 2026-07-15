@@ -596,11 +596,11 @@ export async function getStudentById(id: string) {
   }
 }
 
-export async function getUserById(id: string) {
+export async function getUserById(id: string): Promise<UserItem | null> {
   try {
     await connectDB();
     const user = await User.findById(id).lean();
-    return user ? { ...user, id: toObjectIdString(user._id) } : null;
+    return user ? { ...(user as DocumentWithOptionalId), id: toObjectIdString((user as DocumentWithOptionalId)._id) } as UserItem : null;
   } catch {
     return null;
   }
