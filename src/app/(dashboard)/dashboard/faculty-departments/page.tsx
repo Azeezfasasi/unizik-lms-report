@@ -101,7 +101,7 @@ export default async function FacultyDepartmentsPage() {
                     href={`/dashboard/faculty-departments/${facultyId}`}
                     className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
                   >
-                    View details
+                    View Department details
                   </Link>
                   <Link
                     href={`/dashboard/faculty-departments/${facultyId}/edit`}
