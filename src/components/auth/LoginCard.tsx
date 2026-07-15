@@ -61,21 +61,21 @@ export default function LoginCard() {
     setMessage("Signing you in...");
 
     try {
+      const callbackUrl = `${window.location.origin}/dashboard`;
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
         redirect: false,
-        callbackUrl: "/dashboard",
+        callbackUrl,
       });
 
       if (result?.ok) {
         setMessageTone("success");
         setMessage("Signed in successfully. Redirecting...");
-        // navigate immediately — use callbackUrl or fallback to dashboard
-        try {
-          await router.push(result?.url ?? "/dashboard");
-        } catch {
-          window.location.href = result?.url ?? "/dashboard";
+        const destination = result?.url ?? callbackUrl;
+        await router.push(destination);
+        if (window.location.pathname !== new URL(destination).pathname) {
+          window.location.href = destination;
         }
         return;
       }
@@ -221,12 +221,12 @@ export default function LoginCard() {
         </p>
       ) : null}
 
-      {/* <div className="mt-6 text-sm text-slate-600">
+      <div className="mt-6 text-sm text-slate-600">
         Don&apos;t have an account?{" "}
         <Link href="/register" className="font-semibold text-slate-950 hover:text-teal-500">
           Register
         </Link>
-      </div> */}
+      </div>
     </div>
   );
 }
