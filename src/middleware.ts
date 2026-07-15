@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/api/auth", "/api/auth/", "/api/faculties"];
+const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/manifest.webmanifest", "/api/auth", "/api/auth/", "/api/faculties"];
 
 const adminRoutes = [
   "/dashboard",
