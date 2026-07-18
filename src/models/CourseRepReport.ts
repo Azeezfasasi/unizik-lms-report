@@ -20,7 +20,7 @@ const CourseRepReportSchema = new Schema(
     totalLecturesScheduled: { type: Number, default: 0 },
     totalLecturesHeld: { type: Number, default: 0 },
     issues: { type: String },
-    status: { type: String, enum: ["DRAFT", "SUBMITTED"], default: "DRAFT" },
+    status: { type: String, enum: ["DRAFT", "SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED", "APPROVED", "REJECTED"], default: "DRAFT" },
     submittedAt: { type: Date },
   },
   { timestamps: true }

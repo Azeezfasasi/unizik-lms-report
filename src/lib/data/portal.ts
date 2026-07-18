@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/connectDB";
 import Course from "@/models/Course";
+import CourseRepReport from "@/models/CourseRepReport";
 import Curriculum from "@/models/Curriculum";
 import Department from "@/models/Department";
 import ExaminerReport from "@/models/ExaminerReport";
@@ -65,6 +66,23 @@ export interface ExaminerReportItem {
   attachmentUrl?: string;
   submittedAt?: string | Date;
   reviewedAt?: string | Date;
+  [key: string]: unknown;
+}
+
+export interface LmsRepReportItem {
+  id: string;
+  courseId: string;
+  courseTitle?: string;
+  courseCode?: string;
+  submittedById?: string;
+  submittedByName?: string;
+  academicSession?: string;
+  semester?: "FIRST" | "SECOND";
+  totalLecturesScheduled?: number;
+  totalLecturesHeld?: number;
+  issues?: string;
+  status?: string;
+  submittedAt?: string | Date;
   [key: string]: unknown;
 }
 
@@ -204,6 +222,34 @@ export async function getExaminerReportById(id: string) {
     } as ExaminerReportItem;
   } catch {
     return null;
+  }
+}
+
+export async function getLmsRepReports(): Promise<LmsRepReportItem[]> {
+  try {
+    await connectDB();
+    const reports = await CourseRepReport.find({})
+      .populate("courseId", "title code")
+      .populate("submittedBy", "name")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return reports.map((report: DocumentWithOptionalId) => {
+      const course = report.courseId && typeof report.courseId === "object" ? (report.courseId as DocumentWithOptionalId) : null;
+      const submittedBy = extractPopulatedRef((report as DocumentWithOptionalId).submittedBy);
+
+      return {
+        ...report,
+        id: toObjectIdString((report as DocumentWithOptionalId)._id),
+        courseId: toObjectIdString((report as DocumentWithOptionalId).courseId),
+        courseTitle: typeof course?.title === "string" ? course.title : undefined,
+        courseCode: typeof course?.code === "string" ? course.code : undefined,
+        submittedById: submittedBy.id,
+        submittedByName: submittedBy.name,
+      } as LmsRepReportItem;
+    });
+  } catch {
+    return [];
   }
 }
 
