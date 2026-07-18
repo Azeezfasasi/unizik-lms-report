@@ -23,6 +23,12 @@ export default async function PgCoordinatorReportListPage() {
         </Link>
       </div>
 
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p className="text-sm text-slate-600">
+          This is a list of all reports submitted by PG Cordinators. Click on a report to view its details.
+        </p>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
         {reports.map((report: any) => (
           <Link key={report._id} href={`/dashboard/pg-course-report/${report._id}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">

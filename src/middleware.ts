@@ -8,16 +8,27 @@ const adminRoutes = [
   "/dashboard/faculty-departments",
   "/dashboard/curriculum",
   "/dashboard/examiner-report",
-  "/dashboard/reports",
   "/dashboard/students",
   "/dashboard/users",
 ];
 
 const studentDashboardRoute = "/dashboard";
-const authenticatedRoutes = ["/settings", "/dashboard/student-reports", "/dashboard"];
-// const authenticatedRoutes = [""];
+const authenticatedRoutes = [
+  "/settings",
+  "/dashboard/student-reports",
+  "/dashboard/student-reports/new",
+  "/dashboard",
+  "/dashboard/reports/",
+  "/dashboard/lms-rep-report",
+  "/dashboard/lectures-calendar",
+  "/dashboard/pg-course-report",
+];
 
 function matchesRoute(pathname: string, route: string) {
+  if (route.endsWith("/")) {
+    return pathname.startsWith(route);
+  }
+
   return pathname === route || pathname.startsWith(`${route}/`);
 }
 

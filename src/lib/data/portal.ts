@@ -101,6 +101,10 @@ function extractPopulatedRef(value: unknown): { id: string; name?: string } {
   return { id: "" };
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function getFacultiesWithDepartments() {
   try {
     await connectDB();
@@ -555,10 +559,19 @@ export async function getStudents(): Promise<StudentItem[]> {
   }
 }
 
-export async function getReportsWithStudents(): Promise<ReportWithStudent[]> {
+export async function getReportsWithStudents(studentEmail?: string): Promise<ReportWithStudent[]> {
   try {
     await connectDB();
-    const reports = await Report.find({}).lean();
+
+    const filter: Record<string, unknown> = {};
+    if (studentEmail) {
+      const regex = new RegExp(`^${escapeRegExp(studentEmail)}$`, "i");
+      const student = await Student.findOne({ email: regex }).lean();
+      if (!student) return [];
+      filter.studentId = student._id;
+    }
+
+    const reports = await Report.find(filter).lean();
     const students = await Student.find({}).lean();
 
     return reports.map((report: DocumentWithOptionalId) => {
@@ -573,6 +586,43 @@ export async function getReportsWithStudents(): Promise<ReportWithStudent[]> {
     }) as ReportWithStudent[];
   } catch {
     return [];
+  }
+}
+
+export async function getReportsForStudentEmail(studentEmail?: string): Promise<{
+  reports: ReportWithStudent[];
+  studentCount: number;
+  matchedStudentId?: string | null;
+}> {
+  try {
+    await connectDB();
+
+    if (!studentEmail) {
+      const reports = await getReportsWithStudents();
+      return { reports, studentCount: -1, matchedStudentId: null };
+    }
+
+    const regex = new RegExp(`^${escapeRegExp(studentEmail)}$`, "i");
+    const matchedStudents = await Student.find({ email: regex }).lean();
+
+    if (matchedStudents.length !== 1) {
+      return { reports: [], studentCount: matchedStudents.length, matchedStudentId: matchedStudents[0]?._id ? toObjectIdString(matchedStudents[0]._id) : null };
+    }
+
+    const student = matchedStudents[0];
+    const reports = await Report.find({ studentId: student._id }).lean();
+
+    const mapped = reports.map((report: DocumentWithOptionalId) => ({
+      ...report,
+      id: toObjectIdString(report._id),
+      studentName: String(student.fullName ?? "Student"),
+      status: String(report.status ?? "DRAFT"),
+      notes: report.notes ? String(report.notes) : "",
+    })) as ReportWithStudent[];
+
+    return { reports: mapped, studentCount: 1, matchedStudentId: toObjectIdString(student._id) };
+  } catch {
+    return { reports: [], studentCount: 0, matchedStudentId: null };
   }
 }
 

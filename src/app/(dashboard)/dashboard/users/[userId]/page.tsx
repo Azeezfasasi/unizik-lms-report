@@ -82,6 +82,9 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
               <option value="FACULTY_OFFICER">FACULTY_OFFICER</option>
               <option value="EXAMINER">EXAMINER</option>
               <option value="STUDENT">STUDENT</option>
+              <option value="LMS_REP">LMS REP</option>
+              <option value="PG_COORDINATOR">PG COORDINATOR</option>
+
             </select>
           </div>
         </div>

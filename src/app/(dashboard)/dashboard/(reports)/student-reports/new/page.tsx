@@ -8,6 +8,7 @@ interface StudentOption {
   _id: string;
   fullName: string;
   matricNumber: string;
+  email: string;
   facultyId?: string;
   curriculumId?: string;
 }
@@ -27,12 +28,16 @@ const RATINGS = [1, 2, 3, 4, 5];
 export default function NewStudentReportPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const userRole = session?.user?.role?.toString().toUpperCase().trim();
+  const isStudent = userRole === "STUDENT";
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
   const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
   const [studentId, setStudentId] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [curriculumId, setCurriculumId] = useState("");
+  const selectedStudent = students.find((student) => student._id === studentId);
+  const [studentMatchCount, setStudentMatchCount] = useState<number>(0);
   const [teachingQuality, setTeachingQuality] = useState(3);
   const [examPreparedness, setExamPreparedness] = useState(3);
   const [courseMaterialsRating, setCourseMaterialsRating] = useState(3);
@@ -68,11 +73,17 @@ export default function NewStudentReportPage() {
         const facultiesData = await facultiesRes.json();
         const curriculumsData = await curriculumsRes.json();
 
-        setStudents(studentsData);
+        const filteredStudents =
+          isStudent && session?.user?.email
+            ? (studentsData as StudentOption[]).filter((student) => student.email === session.user.email)
+            : (studentsData as StudentOption[]);
+
+        setStudents(filteredStudents);
+        setStudentMatchCount(filteredStudents.length);
         setFaculties(facultiesData);
         setCurriculums(curriculumsData);
 
-        const selectedStudent = studentsData[0] ?? null;
+        const selectedStudent = filteredStudents[0] ?? null;
         setStudentId(selectedStudent?._id ?? "");
         setFacultyId(selectedStudent?.facultyId ?? facultiesData[0]?._id ?? "");
         setCurriculumId(selectedStudent?.curriculumId ?? curriculumsData[0]?._id ?? "");
@@ -84,7 +95,7 @@ export default function NewStudentReportPage() {
     }
 
     loadOptions();
-  }, [session?.user?.email, session?.user?.role]);
+  }, [session?.user?.email, session?.user?.role, isStudent]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -143,19 +154,26 @@ export default function NewStudentReportPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Student
-            <select
-              value={studentId}
-              onChange={(event) => setStudentId(event.target.value)}
-              disabled={session?.user?.role === "STUDENT"}
-              className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
-            >
-              {students.map((student) => (
-                <option key={student._id} value={student._id}>{student.fullName} — {student.matricNumber}</option>
-              ))}
-            </select>
+            {isStudent ? (
+              <input
+                value={selectedStudent ? `${selectedStudent.fullName} — ${selectedStudent.matricNumber}` : "Loading student..."}
+                disabled
+                className="w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-700"
+              />
+            ) : (
+              <select
+                value={studentId}
+                onChange={(event) => setStudentId(event.target.value)}
+                className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm"
+              >
+                {students.map((student) => (
+                  <option key={student._id} value={student._id}>{student.fullName} — {student.matricNumber}</option>
+                ))}
+              </select>
+            )}
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -243,11 +261,14 @@ export default function NewStudentReportPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             {message ? <p className="text-sm text-slate-600">{message}</p> : null}
+            {isStudent && studentMatchCount > 1 ? (
+              <p className="mt-2 text-sm font-medium text-amber-700">Multiple student records found for your account. Contact the administrator to resolve duplicates.</p>
+            ) : null}
           </div>
-          <button type="submit" disabled={loading || submitting || !studentId || !facultyId || !curriculumId} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
+          <button type="submit" disabled={loading || submitting || !studentId || !facultyId || !curriculumId || (isStudent && studentMatchCount !== 1)} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
             {submitting ? "Saving..." : "Save student report"}
           </button>
         </div>

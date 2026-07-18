@@ -1,18 +1,31 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import Student from "@/models/Student";
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export async function GET(request: Request) {
   await connectDB();
   const { searchParams } = new URL(request.url);
   const facultyId = searchParams.get("facultyId");
   const departmentId = searchParams.get("departmentId");
-  const email = searchParams.get("email");
+  const emailQuery = searchParams.get("email");
 
-  const filter: Record<string, string> = {};
+  const session = await getServerSession(authOptions);
+  const userRole = session?.user?.role?.toString().toUpperCase().trim();
+  let email = emailQuery ?? undefined;
+  if (userRole === "STUDENT") {
+    email = session?.user?.email ? session.user.email.toString().trim().toLowerCase() : undefined;
+  }
+
+  const filter: Record<string, string | RegExp> = {};
   if (facultyId) filter.facultyId = facultyId;
   if (departmentId) filter.departmentId = departmentId;
-  if (email) filter.email = email;
+  if (email) filter.email = new RegExp(`^${escapeRegExp(email)}$`, "i");
 
   const students = await Student.find(filter).lean();
   return NextResponse.json(students);

@@ -23,6 +23,12 @@ export default async function LmsRepReportListPage() {
         </Link>
       </div>
 
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p className="text-sm text-slate-600">
+          This is a list of all reports submitted by LMS Representatives. Click on a report to view its details.
+        </p>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
         {reports.map((report: { _id: string; courseId?: { title?: string; code?: string }; academicSession?: string; status?: string; totalLecturesHeld?: number; totalLecturesScheduled?: number; submittedBy?: { name?: string } }) => (
           <Link key={report._id} href={`/dashboard/lms-rep-report/${report._id}`} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">

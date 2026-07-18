@@ -222,7 +222,7 @@ export default function NewStudentPage() {
     if (response.ok) {
       setMessageTone("success");
       setMessage("Student created successfully.");
-      router.push("/students");
+      router.push("/dashboard/students");
       router.refresh();
       return;
     }
