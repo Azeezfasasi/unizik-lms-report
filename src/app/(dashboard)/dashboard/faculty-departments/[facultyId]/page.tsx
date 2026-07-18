@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDepartmentsByFacultyId, getFacultyById } from "@/lib/data/portal";
 import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
+import { DepartmentSearchList } from "@/components/faculty/DepartmentSearchList";
 
 export default async function FacultyDetailPage({ params }: { params: Promise<{ facultyId: string }> }) {
   const { facultyId } = await params;
@@ -41,7 +42,7 @@ export default async function FacultyDetailPage({ params }: { params: Promise<{ 
             ) : null}
           </div>
         </div>
-        <div className="flex gap-2 sm:shrink-0">
+        <div className="flex flex-col md:flex-row flex-wrap gap-2 sm:shrink-0">
           <Link
             href={`/dashboard/faculty-departments/${facultyId}/edit`}
             className="flex-1 rounded-full border border-slate-200 px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600 sm:flex-none"
@@ -99,31 +100,8 @@ export default async function FacultyDetailPage({ params }: { params: Promise<{ 
         </div>
 
         {facultyDepartments.length > 0 ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {facultyDepartments.map((department) => (
-              <div
-                key={department.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[12px] font-semibold text-slate-600 shadow-sm">
-                    {department.name.charAt(0).toUpperCase()}
-                  </span>
-                  <div className="min-w-0">
-                    <h4 className="truncate text-sm font-semibold text-slate-900">{department.name}</h4>
-                    <p className="mt-0.5 truncate text-xs text-slate-500">
-                      HOD: {department.hod || "Not assigned"}
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  href={`/dashboard/faculty-departments/${facultyId}/departments/${department.id}`}
-                  className="shrink-0 rounded-full bg-teal-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white transition hover:bg-teal-700"
-                >
-                  Manage
-                </Link>
-              </div>
-            ))}
+          <div className="mt-4">
+            <DepartmentSearchList departments={facultyDepartments} facultyId={facultyId} />
           </div>
         ) : (
           <div className="mt-4 rounded-xl border border-dashed border-slate-200 p-8 text-center">
