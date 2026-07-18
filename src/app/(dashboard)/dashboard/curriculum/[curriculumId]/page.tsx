@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 import { notFound } from "next/navigation";
 import { CourseItem, getCurriculumById, getCoursesByCurriculum, getDepartmentById } from "@/lib/data/portal";
 
@@ -61,39 +62,31 @@ export default async function CurriculumDetailPage({ params }: { params: Promise
                 </svg>
                 <span className="truncate">{department?.name ?? "Department not set"}</span>
               </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase ${levelTone(curriculum.level)}`}>
+                  {curriculum.level}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                  {totalUnits} {totalUnits === 1 ? "unit" : "units"}
+                </span>
+              </div>
             </div>
           </div>
-          <Link
-            href={`/dashboard/curriculum/${curriculum.id}/courses/new`}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 sm:shrink-0"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Add course
-          </Link>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-3 sm:gap-4">
-          <div className="rounded-xl bg-slate-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Level</p>
-            <span
-              className={`mt-1.5 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase ${levelTone(
-                curriculum.level
-              )}`}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Link
+              href={`/dashboard/curriculum/${curriculum.id}/courses/new`}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 sm:shrink-0"
             >
-              {curriculum.level}
-            </span>
-          </div>
-          <div className="rounded-xl bg-slate-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Version</p>
-            <p className="mt-1.5 text-sm font-semibold text-slate-900">v{curriculum.version}</p>
-          </div>
-          <div className="rounded-xl bg-slate-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Total Units</p>
-            <p className="mt-1.5 text-sm font-semibold text-slate-900">
-              {totalUnits} {totalUnits === 1 ? "unit" : "units"}
-            </p>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Add course
+            </Link>
+            <DeleteResourceButton
+              deleteUrl={`/api/curriculum/${curriculum.id}`}
+              resourceName="curriculum"
+              redirectTo="/dashboard/curriculum"
+            />
           </div>
         </div>
       </div>
@@ -111,7 +104,7 @@ export default async function CurriculumDetailPage({ params }: { params: Promise
             {availableCourses.map((course: CourseItem) => (
               <div
                 key={course.id}
-                className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200"
+                className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 sm:flex-row sm:items-start"
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[11px] font-semibold text-slate-600 shadow-sm">
                   {course.code?.slice(0, 3).toUpperCase() || "CRS"}
@@ -133,6 +126,12 @@ export default async function CurriculumDetailPage({ params }: { params: Promise
                       {course.semester === "FIRST" ? "1st Semester" : course.semester === "SECOND" ? "2nd Semester" : course.semester}
                     </span>
                   </div>
+                </div>
+                <div className="flex sshrink-0 items-center justify-end">
+                  <DeleteResourceButton
+                    deleteUrl={`/api/courses/${course.id}`}
+                    resourceName="course"
+                  />
                 </div>
               </div>
             ))}

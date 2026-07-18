@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, use, useEffect, useState } from "react";
+import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 
 type LoadStatus = "loading" | "loaded" | "load-error";
 type SaveStatus = "idle" | "submitting" | "error";
@@ -197,13 +198,20 @@ export default function EditCurriculumPage({ params }: { params: Promise<{ curri
               </div>
             ) : null}
 
-            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-              <Link
-                href={`/dashboard/curriculum/${curriculumId}`}
-                className="rounded-full border border-slate-200 px-5 py-2.5 text-center text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-              >
-                Cancel
-              </Link>
+            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-between">
+              <div className="flex items-center gap-3">
+                <DeleteResourceButton
+                  deleteUrl={`/api/curriculum/${curriculumId}`}
+                  resourceName="curriculum"
+                  redirectTo="/dashboard/curriculum"
+                />
+                <Link
+                  href={`/dashboard/curriculum/${curriculumId}`}
+                  className="rounded-full border border-slate-200 px-5 py-2.5 text-center text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  Cancel
+                </Link>
+              </div>
               <button
                 type="submit"
                 disabled={!canSubmit}

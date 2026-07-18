@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 import { getFacultiesWithDepartments } from "@/lib/data/portal";
 
 export default async function FacultyDepartmentsPage() {
@@ -36,7 +37,7 @@ export default async function FacultyDepartmentsPage() {
             return (
               <div
                 key={facultyId}
-                className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
+                className="flex flex-col rounded-2xl border border-slate-200 bg-white p-2 shadow-sm transition hover:shadow-md sm:p-6"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -96,19 +97,25 @@ export default async function FacultyDepartmentsPage() {
                   )}
                 </div>
 
-                <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 xs:flex-row sm:mt-6">
+                <div className="mt-5 flex flex-col lg:flex-row gap-2 border-t border-slate-100 pt-2 xs:flex-row sm:mt-6">
                   <Link
                     href={`/dashboard/faculty-departments/${facultyId}`}
-                    className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
+                    className="rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
                   >
                     View Department details
                   </Link>
                   <Link
                     href={`/dashboard/faculty-departments/${facultyId}/edit`}
-                    className="flex-1 rounded-full bg-teal-600 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-teal-700"
+                    className="rounded-full bg-teal-600 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-teal-700"
                   >
                     Edit faculty
                   </Link>
+                  {/* <div className="w-fit lg:w-full"> */}
+                    <DeleteResourceButton
+                      deleteUrl={`/api/faculties/${facultyId}`}
+                      resourceName="faculty"
+                    />
+                  {/* </div> */}
                 </div>
               </div>
             );

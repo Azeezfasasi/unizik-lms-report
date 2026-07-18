@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
+import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 
 export default function EditDepartmentPage({ params }: { params: Promise<{ facultyId: string; deptId: string }> }) {
   const { facultyId, deptId } = use(params);
@@ -62,6 +63,14 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ facul
       </form>
 
       {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}
+
+      <div className="mt-5">
+        <DeleteResourceButton
+          deleteUrl={`/api/departments/${deptId}`}
+          resourceName="department"
+          redirectTo={`/dashboard/faculty-departments/${facultyId}`}
+        />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDepartmentsByFacultyId, getFacultyById } from "@/lib/data/portal";
+import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 
 export default async function FacultyDetailPage({ params }: { params: Promise<{ facultyId: string }> }) {
   const { facultyId } = await params;
@@ -56,6 +57,11 @@ export default async function FacultyDetailPage({ params }: { params: Promise<{ 
             </svg>
             Add department
           </Link>
+          <DeleteResourceButton
+            deleteUrl={`/api/faculties/${facultyId}`}
+            resourceName="faculty"
+            redirectTo="/dashboard/faculty-departments"
+          />
         </div>
       </div>
 

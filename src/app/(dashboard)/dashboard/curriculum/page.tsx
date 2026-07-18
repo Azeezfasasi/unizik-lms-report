@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 import { getCurriculumsWithDepartment } from "@/lib/data/portal";
 
 const levelStyles: Record<string, string> = {
@@ -76,7 +77,7 @@ export default async function CurriculumPage() {
                 </span>
               </div>
 
-              <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
+              <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row flex-wrap">
                 <Link
                   href={`/dashboard/curriculum/${curriculum.id}`}
                   className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
@@ -89,6 +90,11 @@ export default async function CurriculumPage() {
                 >
                   Edit details
                 </Link>
+                <DeleteResourceButton
+                  deleteUrl={`/api/curriculum/${curriculum.id}`}
+                  resourceName="curriculum"
+                  redirectTo="/dashboard/curriculum"
+                />
               </div>
             </div>
           ))}
