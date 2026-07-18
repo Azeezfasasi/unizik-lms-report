@@ -20,7 +20,7 @@ export default async function FacultyDepartmentsPage({
     const matchesQuery =
       !normalizedQuery ||
       faculty.name.toLowerCase().includes(normalizedQuery) ||
-      faculty.code.toLowerCase().includes(normalizedQuery) ||
+      String(faculty.code ?? "").toLowerCase().includes(normalizedQuery) ||
       (faculty.dean ?? "").toLowerCase().includes(normalizedQuery);
 
     const departmentCount = faculty.departments.length;
