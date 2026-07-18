@@ -5,16 +5,17 @@ import { getToken } from "next-auth/jwt";
 const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/manifest.webmanifest", "/api/auth", "/api/auth/", "/api/faculties"];
 
 const adminRoutes = [
-  "/dashboard",
-  "/faculty-departments",
-  "/curriculum",
-  "/examiner-report",
-  "/reports",
-  "/students",
-  "/users",
+  "/dashboard/faculty-departments",
+  "/dashboard/curriculum",
+  "/dashboard/examiner-report",
+  "/dashboard/reports",
+  "/dashboard/students",
+  "/dashboard/users",
 ];
 
-const authenticatedRoutes = ["/settings", "/student-reports"];
+const studentDashboardRoute = "/dashboard";
+const authenticatedRoutes = ["/settings", "/dashboard/student-reports", "/dashboard"];
+// const authenticatedRoutes = [""];
 
 function matchesRoute(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(`${route}/`);
@@ -44,6 +45,10 @@ export async function middleware(request: NextRequest) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
+  }
+
+  if (matchesRoute(pathname, studentDashboardRoute)) {
+    return NextResponse.next();
   }
 
   if (authenticatedRoutes.some((route) => matchesRoute(pathname, route))) {

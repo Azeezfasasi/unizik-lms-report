@@ -60,12 +60,12 @@ export function Topbar() {
   return (
     <header className="sticky top-0 z-30 border-b border-transparent bg-white/95 backdrop-blur-md transition-colors data-[scrolled=true]:border-slate-200 shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-sm font-semibold text-slate-900">
-            <Image src="/logo.svg" alt="" fill className="object-contain p-1.5" />
+        <Link href="/" className="flex items-center gap-2">
+          <div className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-semibold text-slate-900">
+            <Image src="/images/unizik.png" alt="Unizik Logo" width={56} height={56} className="object-contain" />
           </div>
           <div className="hidden sm:block">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-teal-600">Unizik LMS</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-teal-600">Unizik LMS Portal</p>
           </div>
         </Link>
 

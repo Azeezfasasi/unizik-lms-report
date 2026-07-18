@@ -21,29 +21,21 @@ export function Sidebar() {
   const userName = session?.user?.name ?? "Guest";
   const userInitial = userName.charAt(0).toUpperCase();
 
-  const linkRoles: Record<string, string[] | undefined> = {
-    "/users": ["ADMIN"],
-    "/faculty-departments": ["ADMIN", "FACULTY_OFFICER"],
-    "/curriculum": ["ADMIN", "FACULTY_OFFICER", "EXAMINER"],
-    "/examiner-report": ["ADMIN", "EXAMINER"],
-    "/student-reports": ["ADMIN", "FACULTY_OFFICER", "EXAMINER", "STUDENT"],
-    "/reports": ["ADMIN", "FACULTY_OFFICER"],
-    "/students": ["ADMIN", "FACULTY_OFFICER"],
-    "/settings": ["ADMIN", "FACULTY_OFFICER", "EXAMINER", "STUDENT"],
-  };
-
   // Optional section groupings — falls back gracefully if a href isn't listed here.
   const sectionMap: Record<string, string> = {
     "/dashboard": "Overview",
     "/": "Overview",
     "/dashboard/faculty-departments": "Academics",
     "/dashboard/curriculum": "Academics",
-    "/dashboard/examiner-report": "Academics",
+    "/dashboard/examiner-report": "Reporting",
+    "/dashboard/lms-rep-report": "Reporting",
+    "/dashboard/lectures-calendar": "Academics",
     "/dashboard/student-reports": "Reporting",
     "/dashboard/reports": "Reporting",
-    "/dashboard/students": "Reporting",
+    "/dashboard/students": "Administration",
+    "/dashboard/pg-course-report": "Reporting",
     "/dashboard/users": "Administration",
-    "/dashboard/settings": "Administration",
+    "/dashboard/settings/profile": "General",
   };
 
   useEffect(() => {
@@ -93,6 +85,14 @@ export function Sidebar() {
         <path d="M18 6H6" />
       </svg>
     ),
+    calendar: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4.5 w-4.5">
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M3 9h18" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+      </svg>
+    ),
     clipboard: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4.5 w-4.5">
         <path d="M9 2h6a2 2 0 0 1 2 2v2H7V4a2 2 0 0 1 2-2Z" />
@@ -138,7 +138,7 @@ export function Sidebar() {
   };
 
   const visibleLinks = navLinks.filter((link) => {
-    const roles = linkRoles[link.href];
+    const roles = link.roles;
     if (!roles) return true;
     if (!userRole) return false;
     return roles.includes(userRole);

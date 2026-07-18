@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession, type Session } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import ReportAdminActions from "./_components/ReportAdminActions";
+import { ExportButtons } from "@/components/reports/ExportButtons";
 import {
   CourseItem,
   DepartmentItem,
@@ -198,31 +199,12 @@ export default async function ExaminerReportPage() {
                   </span>
                 </div>
 
-                <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 xs:flex-row">
-                  <a
-                    href={`/api/export/pdf/${report.id}`}
-                    className="w-fit inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-slate-800 xs:flex-none"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
-                      <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-                      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                    </svg>
-                    Download PDF
-                  </a>
-                  <a
-                    href={`/api/export/word/${report.id}`}
-                    className="w-fit inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600 xs:flex-none"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
-                      <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-                      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                    </svg>
-                    Download Word
-                  </a>
+                <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4">
+                  <ExportButtons type="examiner" id={report.id} />
                   {canAccessMarkingScheme && report.markingSchemeUrl ? (
                     <a
                       href={`/api/examiner-reports/${report.id}/marking-scheme`}
-                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600 xs:flex-none"
+                      className="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
                         <path d="M12 3v12m0 0l-4-4m4 4l4-4" />

@@ -9,6 +9,12 @@ const ReportSchema = new Schema(
     preparedBy: { type: Schema.Types.ObjectId, ref: "User" },
     submittedAt: { type: Date },
     notes: { type: String },
+    teachingQuality: { type: Number, min: 1, max: 5, default: 3 },
+    examPreparedness: { type: Number, min: 1, max: 5, default: 3 },
+    courseMaterialsRating: { type: Number, min: 1, max: 5, default: 3 },
+    lectureFeedback: { type: String },
+    examFeedback: { type: String },
+    instructorFeedback: { type: String },
   },
   { timestamps: true }
 );

@@ -7,10 +7,12 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const facultyId = searchParams.get("facultyId");
   const departmentId = searchParams.get("departmentId");
+  const email = searchParams.get("email");
 
   const filter: Record<string, string> = {};
   if (facultyId) filter.facultyId = facultyId;
   if (departmentId) filter.departmentId = departmentId;
+  if (email) filter.email = email;
 
   const students = await Student.find(filter).lean();
   return NextResponse.json(students);

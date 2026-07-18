@@ -7,7 +7,7 @@ const UserSchema = new Schema(
     password: { type: String, required: true, select: false },
     role: {
       type: String,
-      enum: ["ADMIN", "FACULTY_OFFICER", "EXAMINER", "STUDENT"],
+      enum: ["ADMIN", "FACULTY_OFFICER", "EXAMINER", "STUDENT", "LMS_REP", "PG_COORDINATOR"],
       default: "STUDENT",
     },
     facultyId: { type: Schema.Types.ObjectId, ref: "Faculty" },

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 
 const centerNav = [
   { href: "/dashboard/faculty-departments", label: "Features" },
@@ -33,13 +34,12 @@ export function DashboardHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-teal-400 to-teal-600 text-sm font-semibold text-white shadow-sm">
-            U
+        <Link href="/" className="flex items-center gap-2">
+          <div className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-semibold text-slate-900">
+            <Image src="/images/unizik.png" alt="Unizik Logo" width={56} height={56} className="object-contain" />
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold leading-tight text-slate-900">Unizik LMS</p>
-            <p className="text-[11px] font-medium leading-tight text-slate-500">Postgraduate portal</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-teal-600">Unizik LMS Portal</p>
           </div>
         </Link>
 
