@@ -298,6 +298,8 @@ export default function NewUserPage() {
                       <option value="FACULTY_OFFICER">Faculty officer</option>
                       <option value="EXAMINER">Examiner</option>
                       <option value="STUDENT">Student</option>
+                      <option value="LMS_REP">LMS Rep</option>
+                      <option value="PG_COORDINATOR">PG Coordinator</option>
                     </select>
                     <SelectChevron />
                   </div>

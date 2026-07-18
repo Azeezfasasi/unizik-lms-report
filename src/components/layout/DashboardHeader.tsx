@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
+import { CircleChevronDown } from "lucide-react";
 
 const centerNav = [
-  { href: "/dashboard/faculty-departments", label: "Features" },
-  { href: "/dashboard/examiner-report", label: "Reports" },
+  { href: "/dashboard/faculty-departments", label: "Faculty" },
+  { href: "/dashboard/curriculum", label: "Curriculum & Courses" },
 ];
 
 export function DashboardHeader() {
@@ -151,9 +152,7 @@ export function DashboardHeader() {
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 sm:hidden"
               aria-label="Toggle page links"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
-                <path d={mobileNavOpen ? "M6 6l12 12M18 6L6 18" : "M12 5v14M5 12h14"} />
-              </svg>
+              <CircleChevronDown className={`h-5 w-5 text-slate-600 transition-transform ${mobileNavOpen ? "rotate-180" : ""}`} />
             </button>
           ) : null}
         </div>
