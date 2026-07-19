@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ClientOnlyCourseList from "@/components/curriculum/ClientOnlyCourseList";
 import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 import { notFound } from "next/navigation";
 import { CourseItem, getCurriculumById, getCoursesByCurriculum, getDepartmentById } from "@/lib/data/portal";
@@ -13,11 +14,6 @@ function levelTone(level: string) {
   return levelStyles[level] ?? "bg-teal-100 text-teal-700";
 }
 
-const semesterStyles: Record<string, string> = {
-  FIRST: "bg-slate-100 text-slate-600",
-  SECOND: "bg-slate-100 text-slate-600",
-};
-
 export default async function CurriculumDetailPage({ params }: { params: Promise<{ curriculumId: string }> }) {
   const { curriculumId } = await params;
   const curriculum = await getCurriculumById(curriculumId);
@@ -29,6 +25,14 @@ export default async function CurriculumDetailPage({ params }: { params: Promise
   const department = await getDepartmentById(curriculum.departmentId);
   const availableCourses: CourseItem[] = await getCoursesByCurriculum(curriculum.id);
   const totalUnits = availableCourses.reduce((sum, course) => sum + (course.units ?? 0), 0);
+  const plainCourses = availableCourses.map((c) => ({
+    id: String(c.id ?? ""),
+    title: String(c.title ?? ""),
+    code: String(c.code ?? ""),
+    units: Number(c.units ?? 0),
+    semester: (c.semester as "FIRST" | "SECOND") ?? "FIRST",
+    curriculumId: String(c.curriculumId ?? ""),
+  }));
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -100,41 +104,9 @@ export default async function CurriculumDetailPage({ params }: { params: Promise
         </div>
 
         {availableCourses.length > 0 ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {availableCourses.map((course: CourseItem) => (
-              <div
-                key={course.id}
-                className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 sm:flex-row sm:items-start"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[11px] font-semibold text-slate-600 shadow-sm">
-                  {course.code?.slice(0, 3).toUpperCase() || "CRS"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h4 className="truncate text-sm font-semibold text-slate-900">{course.title}</h4>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 shadow-sm">
-                      {course.code}
-                    </span>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 shadow-sm">
-                      {course.units} {course.units === 1 ? "unit" : "units"}
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                        semesterStyles[course.semester] ?? "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {course.semester === "FIRST" ? "1st Semester" : course.semester === "SECOND" ? "2nd Semester" : course.semester}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex sshrink-0 items-center justify-end">
-                  <DeleteResourceButton
-                    deleteUrl={`/api/courses/${course.id}`}
-                    resourceName="course"
-                  />
-                </div>
-              </div>
-            ))}
+          <div className="mt-4">
+            {/* Client component handles edit modal and actions */}
+            <ClientOnlyCourseList courses={plainCourses} curriculumId={curriculum.id} />
           </div>
         ) : (
           <div className="mt-4 rounded-xl border border-dashed border-slate-200 p-8 text-center">

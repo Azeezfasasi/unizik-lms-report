@@ -18,7 +18,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   await connectDB();
   const { id } = await params;
   const payload = await request.json();
-  const course = await Course.findByIdAndUpdate(id, payload, { new: true }).lean();
+  const course = await Course.findByIdAndUpdate(id, payload, { returnDocument: "after" }).lean();
 
   if (!course) {
     return NextResponse.json({ message: "Course not found" }, { status: 404 });

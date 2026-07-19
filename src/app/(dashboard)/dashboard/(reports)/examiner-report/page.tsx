@@ -3,6 +3,8 @@ import { getServerSession, type Session } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import ReportAdminActions from "./_components/ReportAdminActions";
 import { ExportButtons } from "@/components/reports/ExportButtons";
+import { ExaminerReportFilters } from "@/components/reports/ExaminerReportFilters";
+import { Pagination } from "@/components/shared/Pagination";
 import {
   CourseItem,
   DepartmentItem,
@@ -37,8 +39,20 @@ function formatDate(value: unknown) {
 }
 
 const MODERATOR_ROLES = ["ADMIN", "FACULTY_OFFICER"];
+const PAGE_SIZE = 6;
 
-export default async function ExaminerReportPage() {
+export default async function ExaminerReportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; faculty?: string; page?: string }>;
+}) {
+  const {
+    q = "",
+    status: statusFilter = "all",
+    faculty: facultyFilter = "all",
+    page: pageParam = "1",
+  } = await searchParams;
+
   const [examinerReports, faculties, departments, courses, session]: [
     ExaminerReportItem[],
     FacultyItem[],
@@ -58,6 +72,33 @@ export default async function ExaminerReportPage() {
     courses.map((course: CourseItem) => [course.id, `${course.title} (${course.code})`])
   );
 
+  const normalizedQuery = q.trim().toLowerCase();
+  const filteredReports = examinerReports.filter((report) => {
+    const matchesQuery =
+      !normalizedQuery ||
+      // report.examinerName.toLowerCase().includes(normalizedQuery) ||
+      String(report.externalExaminerName ?? "").toLowerCase().includes(normalizedQuery) ||
+      String(report.facultyId ?? "").toLowerCase().includes(normalizedQuery) ||
+      String(report.departmentId ?? "").toLowerCase().includes(normalizedQuery) ||
+      String(report.courseId ?? "").toLowerCase().includes(normalizedQuery) ||
+      (report.comments ?? "").toLowerCase().includes(normalizedQuery) ||
+      (report.academicSession ?? "").toLowerCase().includes(normalizedQuery);
+
+    const matchesStatus = statusFilter === "all" || report.status === statusFilter;
+    const matchesFaculty = facultyFilter === "all" || report.facultyId === facultyFilter;
+
+    return matchesQuery && matchesStatus && matchesFaculty;
+  });
+
+  const totalResults = filteredReports.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, Number(pageParam) || 1), totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pagedReports = filteredReports.slice(start, start + PAGE_SIZE);
+
+  const hasAnyReportsAtAll = examinerReports.length > 0;
+  const isFiltered = Boolean(normalizedQuery) || statusFilter !== "all" || facultyFilter !== "all";
+
   return (
     <div className="space-y-5 sm:space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -65,7 +106,8 @@ export default async function ExaminerReportPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-600">Examiner Review</p>
           <h2 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">Examiner Reports</h2>
           <p className="mt-1 text-sm text-slate-500">
-            {examinerReports.length} {examinerReports.length === 1 ? "report" : "reports"} on record
+            {totalResults} {totalResults === 1 ? "report" : "reports"}
+            {isFiltered ? " matching your filters" : " on record"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -97,129 +139,148 @@ export default async function ExaminerReportPage() {
         </div>
       </div>
 
-      {examinerReports.length > 0 ? (
-        <div className="grid gap-4">
-          {examinerReports.map((report) => {
-            const facultyName = facultyMap.get(report.facultyId) ?? "Faculty";
-            const departmentName = report.departmentId
-              ? departmentMap.get(report.departmentId) ?? "Department"
-              : null;
-            const courseName = report.courseId ? courseMap.get(report.courseId) ?? "Course" : null;
-            const score = report.score;
-            const canAccessMarkingScheme =
-              Boolean(userRole) &&
-              (MODERATOR_ROLES.includes(userRole ?? "") || (Boolean(userId) && report.moderatorId === userId));
+      {hasAnyReportsAtAll ? (
+        <ExaminerReportFilters faculties={faculties.map((f) => ({ id: f.id, name: f.name }))} />
+      ) : null}
 
-            return (
-              <div
-                key={report.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal-500/15 text-sm font-semibold text-teal-700">
-                      {report.examinerName.charAt(0).toUpperCase()}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-teal-600">
-                        {facultyName}
-                      </p>
-                      <h3 className="mt-0.5 truncate text-lg font-semibold text-slate-900 sm:text-xl">
-                        {report.examinerName}
-                      </h3>
-                      {report.comments ? (
-                        <p className="mt-1.5 line-clamp-2 text-sm text-slate-600">{report.comments}</p>
+      {pagedReports.length > 0 ? (
+        <>
+          <div className="grid gap-4">
+            {pagedReports.map((report) => {
+              const facultyName = facultyMap.get(report.facultyId) ?? "Faculty";
+              const departmentName = report.departmentId
+                ? departmentMap.get(report.departmentId) ?? "Department"
+                : null;
+              const courseName = report.courseId ? courseMap.get(report.courseId) ?? "Course" : null;
+              const score = report.score;
+              const canAccessMarkingScheme =
+                Boolean(userRole) &&
+                (MODERATOR_ROLES.includes(userRole ?? "") || (Boolean(userId) && report.moderatorId === userId));
+
+              return (
+                <div
+                  key={report.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
+                >
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal-500/15 text-sm font-semibold text-teal-700">
+                        {report.examinerName.charAt(0).toUpperCase()}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-teal-600">
+                          {facultyName}
+                        </p>
+                        <h3 className="mt-0.5 truncate text-lg font-semibold text-slate-900 sm:text-xl">
+                          {report.examinerName}
+                        </h3>
+                        {report.comments ? (
+                          <p className="mt-1.5 line-clamp-2 text-sm text-slate-600">{report.comments}</p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                      {report.status ? (
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            statusTone[report.status] ?? "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {report.status.replace(/_/g, " ")}
+                        </span>
+                      ) : null}
+                      {report.malpracticeFlagged ? (
+                        <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+                          Malpractice flagged
+                        </span>
+                      ) : null}
+                      {score !== undefined ? (
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${scoreTone(
+                            score
+                          )}`}
+                        >
+                          {score}/100
+                        </span>
                       ) : null}
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                    {report.status ? (
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          statusTone[report.status] ?? "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {report.status.replace(/_/g, " ")}
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {departmentName ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
+                          <path d="M5 21V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v15" />
+                          <path d="M9 21V9h6v12" />
+                        </svg>
+                        {departmentName}
                       </span>
                     ) : null}
-                    {report.malpracticeFlagged ? (
-                      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
-                        Malpractice flagged
+                    {courseName ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
+                          <path d="M6 4h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6" />
+                          <path d="M6 4v18" />
+                        </svg>
+                        {courseName}
                       </span>
                     ) : null}
-                    {score !== undefined ? (
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${scoreTone(
-                          score
-                        )}`}
-                      >
-                        {score}/100
+                    {report.academicSession ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        {report.academicSession}
+                        {report.semester ? ` · ${report.semester}` : ""}
                       </span>
+                    ) : null}
+                    {report.examType ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        {report.examType}
+                      </span>
+                    ) : null}
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
+                        <rect x="3" y="4" width="18" height="17" rx="2" />
+                        <path d="M3 9h18M8 3v4M16 3v4" />
+                      </svg>
+                      {formatDate(report.submittedAt)}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4">
+                    <ExportButtons type="examiner" id={report.id} />
+                    {canAccessMarkingScheme && report.markingSchemeUrl ? (
+                      <a
+                        href={`/api/examiner-reports/${report.id}/marking-scheme`}
+                        className="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
+                          <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+                          <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                        </svg>
+                        Marking scheme
+                      </a>
+                    ) : null}
+                    {userRole === "ADMIN" ? (
+                      <ReportAdminActions reportId={report.id} />
                     ) : null}
                   </div>
                 </div>
+              );
+            })}
+          </div>
 
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {departmentName ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
-                        <path d="M5 21V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v15" />
-                        <path d="M9 21V9h6v12" />
-                      </svg>
-                      {departmentName}
-                    </span>
-                  ) : null}
-                  {courseName ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
-                        <path d="M6 4h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6" />
-                        <path d="M6 4v18" />
-                      </svg>
-                      {courseName}
-                    </span>
-                  ) : null}
-                  {report.academicSession ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                      {report.academicSession}
-                      {report.semester ? ` · ${report.semester}` : ""}
-                    </span>
-                  ) : null}
-                  {report.examType ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                      {report.examType}
-                    </span>
-                  ) : null}
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3.5 w-3.5">
-                      <rect x="3" y="4" width="18" height="17" rx="2" />
-                      <path d="M3 9h18M8 3v4M16 3v4" />
-                    </svg>
-                    {formatDate(report.submittedAt)}
-                  </span>
-                </div>
-
-                <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4">
-                  <ExportButtons type="examiner" id={report.id} />
-                  {canAccessMarkingScheme && report.markingSchemeUrl ? (
-                    <a
-                      href={`/api/examiner-reports/${report.id}/marking-scheme`}
-                      className="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:text-teal-600"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4 w-4">
-                        <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                      </svg>
-                      Marking scheme
-                    </a>
-                  ) : null}
-                  {userRole === "ADMIN" ? (
-                    <ReportAdminActions reportId={report.id} />
-                  ) : null}
-                </div>
-              </div>
-            );
-          })}
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
+        </>
+      ) : isFiltered ? (
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center sm:p-14">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-6 w-6">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+          </span>
+          <p className="mt-4 text-sm font-semibold text-slate-700">No reports match your search</p>
+          <p className="mt-1 text-sm text-slate-400">Try a different search term, status, or faculty.</p>
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center sm:p-14">

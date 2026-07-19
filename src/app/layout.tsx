@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/providers/SessionProvider";
+import PWAInstallBanner from "@/components/layout/PWAInstallBanner";
 import "./globals.css";
 import MaybeTopbar from "@/components/layout/MaybeTopbar";
 import MaybeDashboardHeader from "@/components/layout/MaybeDashboardHeader";
@@ -45,6 +46,7 @@ export default function RootLayout({
           <MaybeTopbar />
           <MaybeDashboardHeader />
           {children}
+          <PWAInstallBanner />
         </AuthSessionProvider>
       </body>
     </html>

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Modal } from "@/components/shared/Modal";
 
 interface Props {
   deleteUrl: string;
@@ -40,8 +41,27 @@ export default function DeleteResourceButton({ deleteUrl, resourceName, redirect
     }
   }
 
-  if (confirming) {
+  if (!confirming) {
     return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="inline-flex items-center justify-center rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:border-red-400 hover:bg-red-50 cursor-pointer"
+      >
+        Delete
+      </button>
+    );
+  }
+
+  return (
+    <Modal
+      open={confirming}
+      onClose={() => {
+        setConfirming(false);
+        setError("");
+      }}
+      title={`Delete ${resourceName}?`}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-slate-600">Delete this {resourceName}?</span>
         <button
@@ -65,16 +85,6 @@ export default function DeleteResourceButton({ deleteUrl, resourceName, redirect
         </button>
         {error ? <span className="text-xs text-red-600">{error}</span> : null}
       </div>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => setConfirming(true)}
-      className="inline-flex items-center justify-center rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:border-red-400 hover:bg-red-50 cursor-pointer"
-    >
-      Delete
-    </button>
+    </Modal>
   );
 }
