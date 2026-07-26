@@ -37,6 +37,7 @@ export function Sidebar() {
     "/dashboard/reports/approvals": "Reporting",
     "/dashboard/users": "Administration",
     "/dashboard/settings/profile": "General",
+    "/dashboard/supervisor-report": "Reporting",
   };
 
   useEffect(() => {

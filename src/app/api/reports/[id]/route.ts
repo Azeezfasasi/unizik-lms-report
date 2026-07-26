@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connectDB";
-import Report from "@/models/Report";
+import StudentReport from "@/models/StudentReport";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
   const { id } = await params;
-  const report = await Report.findById(id).lean();
+  const report = await StudentReport.findById(id).lean();
 
   if (!report) {
     return NextResponse.json({ message: "Report not found" }, { status: 404 });
@@ -18,7 +18,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   await connectDB();
   const { id } = await params;
   const payload = await request.json();
-  const report = await Report.findByIdAndUpdate(id, payload, { new: true });
+  const report = await StudentReport.findByIdAndUpdate(id, payload, { new: true });
 
   if (!report) {
     return NextResponse.json({ message: "Report not found" }, { status: 404 });
@@ -30,7 +30,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
   const { id } = await params;
-  const report = await Report.findByIdAndDelete(id);
+  const report = await StudentReport.findByIdAndDelete(id);
 
   if (!report) {
     return NextResponse.json({ message: "Report not found" }, { status: 404 });

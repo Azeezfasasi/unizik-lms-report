@@ -14,6 +14,9 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
   FACULTY_OFFICER: "Manages students, examiners, and reports within an assigned faculty.",
   EXAMINER: "Submits and reviews examiner reports for assigned courses.",
   STUDENT: "Read-only access to their own academic records.",
+  LMS_REP: "Submits LMS representative reports and monitors course delivery.",
+  PG_COORDINATOR: "Prepares postgraduate course coordinator reports and oversight metrics.",
+  SUPERVISOR: "Reviews student response metrics and departmental teaching quality.",
 };
 
 function SelectChevron() {
@@ -300,6 +303,7 @@ export default function NewUserPage() {
                       <option value="STUDENT">Student</option>
                       <option value="LMS_REP">LMS Rep</option>
                       <option value="PG_COORDINATOR">PG Coordinator</option>
+                      <option value="SUPERVISOR">Supervisor</option>
                     </select>
                     <SelectChevron />
                   </div>

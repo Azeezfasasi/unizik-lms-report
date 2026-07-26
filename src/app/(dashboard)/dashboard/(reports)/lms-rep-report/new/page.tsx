@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { PercentageRating } from "@/components/shared/PercentageRating";
 
 interface CourseOption {
   _id: string;
@@ -27,6 +28,9 @@ export default function NewLmsRepReportPage() {
   const [curriculumId, setCurriculumId] = useState("");
   const [academicSession, setAcademicSession] = useState("");
   const [semester, setSemester] = useState("FIRST");
+  const [portalReadiness, setPortalReadiness] = useState("PARTIALLY_READY");
+  const [lecturerTrainingRating, setLecturerTrainingRating] = useState(60);
+  const [generalComments, setGeneralComments] = useState("");
   const [issues, setIssues] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -69,6 +73,9 @@ export default function NewLmsRepReportPage() {
       submittedBy: session?.user?.id,
       academicSession,
       semester,
+      portalReadinessForQuizAndExam: portalReadiness,
+      lecturerTrainingRating,
+      generalComments,
       issues,
     };
 
@@ -144,6 +151,23 @@ export default function NewLmsRepReportPage() {
             )}
           </div>
         </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Portal readiness for quizzes & exams
+            <select value={portalReadiness} onChange={(event) => setPortalReadiness(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2">
+              <option value="NOT_READY">Not ready</option>
+              <option value="PARTIALLY_READY">Partially ready</option>
+              <option value="READY">Ready</option>
+            </select>
+          </label>
+          <PercentageRating label="Lecturer training effectiveness" value={lecturerTrainingRating} onChange={setLecturerTrainingRating} />
+        </div>
+
+        <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
+          General comments
+          <textarea value={generalComments} onChange={(event) => setGeneralComments(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="Use this field to summarize readiness and training notes." />
+        </label>
 
         <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
           Issues / remarks

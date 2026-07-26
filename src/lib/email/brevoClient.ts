@@ -1,8 +1,15 @@
+type AttachmentPayload = {
+  content: string;
+  name: string;
+  contentType: string;
+};
+
 type SendSmtpEmailPayload = {
   to: Array<{ email: string; name?: string }>;
   sender: { email: string; name?: string };
   subject: string;
   htmlContent: string;
+  attachment?: AttachmentPayload[];
 };
 
 export async function sendTransactionalEmail(payload: SendSmtpEmailPayload) {

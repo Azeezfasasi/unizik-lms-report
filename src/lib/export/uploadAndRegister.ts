@@ -1,4 +1,4 @@
-import cloudinary from "@/lib/cloudinary/cloudinary";
+import cloudinary, { ensureCloudinaryConfigured } from "@/lib/cloudinary/cloudinary";
 import GeneratedReportFile from "@/models/GeneratedReportFile";
 
 type CloudinaryUploadResult = {
@@ -9,11 +9,13 @@ export async function uploadAndRegister(opts: {
   buffer: Buffer;
   fileName: string;
   format: "PDF" | "DOCX" | "XLSX";
-  reportType: "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER";
-  sourceId: string;
+  reportType: "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER" | "SUPERVISOR" | "DIRECTOR";
+  sourceId?: string;
   facultyId?: string;
   generatedBy?: string;
 }) {
+  ensureCloudinaryConfigured();
+
   const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
     cloudinary.uploader
       .upload_stream(
@@ -21,7 +23,7 @@ export async function uploadAndRegister(opts: {
         (err, result) => {
           if (err) reject(err);
           else if (result) resolve(result);
-    else reject(new Error("Cloudinary upload did not return a result"));
+          else reject(new Error("Cloudinary upload did not return a result"));
         }
       )
       .end(opts.buffer);

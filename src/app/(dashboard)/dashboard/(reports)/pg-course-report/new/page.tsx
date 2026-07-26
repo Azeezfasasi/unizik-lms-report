@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { PercentageRating } from "@/components/shared/PercentageRating";
 
 interface CurriculumOption {
   _id: string;
@@ -29,6 +30,9 @@ export default function NewCoordinatorReportPage() {
   const [semester, setSemester] = useState("FIRST");
   const [recommendations, setRecommendations] = useState("");
   const [examTimetableStatus, setExamTimetableStatus] = useState("Pending release");
+  const [lecturerResponseRate, setLecturerResponseRate] = useState(60);
+  const [misconductSeverity, setMisconductSeverity] = useState("NONE");
+  const [generalComments, setGeneralComments] = useState("");
   const [summary, setSummary] = useState<CoordinatorSummary | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -60,6 +64,9 @@ export default function NewCoordinatorReportPage() {
       totalStudents: summary?.totalStudents ?? 0,
       totalCourses: summary?.totalCourses ?? 0,
       lectureComplianceRate: summary?.lectureComplianceRate ?? 0,
+      lecturerResponseRate,
+      misconductSeverity,
+      generalComments,
       examinerReportsSummary: summary?.examinerReportsSummary ?? { submitted: 0, approved: 0, pending: 0 },
       examTimetableStatus,
       recommendations,
@@ -124,6 +131,23 @@ export default function NewCoordinatorReportPage() {
             <div>Examiner Reports Pending: {summary?.examinerReportsSummary?.pending ?? 0}</div>
           </div>
         </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <PercentageRating label="Lecturer response rate" value={lecturerResponseRate} onChange={setLecturerResponseRate} />
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Misconduct severity
+            <select value={misconductSeverity} onChange={(event) => setMisconductSeverity(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2">
+              <option value="NONE">None</option>
+              <option value="MINOR">Minor</option>
+              <option value="SERIOUS">Serious</option>
+            </select>
+          </label>
+        </div>
+
+        <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
+          General comments
+          <textarea value={generalComments} onChange={(event) => setGeneralComments(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="Add any additional context for the director or faculty review." />
+        </label>
 
         <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
           Exam Timetable Status

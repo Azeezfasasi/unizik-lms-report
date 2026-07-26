@@ -1,13 +1,21 @@
-import { ReportStatusBadge } from "./ReportStatusBadge";
-
 const TYPE_LABEL: Record<string, string> = {
   STUDENT: "Student Report",
   LMS_REP: "LMS Rep Report",
   PG_COORDINATOR: "PG Coordinator's Report",
   EXAMINER: "Examiner Report",
+  DIRECTOR: "Director Summary",
 };
 
-export function GeneratedReportsTable({ files }: { files: any[] }) {
+type GeneratedReportFileRecord = {
+  _id: string;
+  reportType: "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER" | "DIRECTOR";
+  format: "PDF" | "DOCX" | "XLSX";
+  generatedBy?: { name?: string } | null;
+  createdAt: string;
+  fileUrl: string;
+};
+
+export function GeneratedReportsTable({ files }: { files: GeneratedReportFileRecord[] }) {
   if (files.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center">

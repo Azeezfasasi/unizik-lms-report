@@ -19,6 +19,13 @@ const CourseRepReportSchema = new Schema(
     lectureCompliance: { type: [LectureComplianceSchema], default: [] },
     totalLecturesScheduled: { type: Number, default: 0 },
     totalLecturesHeld: { type: Number, default: 0 },
+    portalReadinessForQuizAndExam: {
+      type: String,
+      enum: ["NOT_READY", "PARTIALLY_READY", "READY"],
+      default: "PARTIALLY_READY",
+    },
+    lecturerTrainingRating: { type: Number, min: 0, max: 100, default: 50 },
+    generalComments: { type: String },
     issues: { type: String },
     status: { type: String, enum: ["DRAFT", "SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED", "APPROVED", "REJECTED"], default: "DRAFT" },
     submittedAt: { type: Date },

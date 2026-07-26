@@ -74,6 +74,16 @@ export default function PWAInstallBanner() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+      return;
+    }
+
+    navigator.serviceWorker
+      .register("/sw.js")
+      .catch((error) => console.error("PWA service worker registration failed:", error));
+  }, []);
+
   if (isInstalled || isDismissed || !isVisible || !deferredPrompt) {
     return null;
   }

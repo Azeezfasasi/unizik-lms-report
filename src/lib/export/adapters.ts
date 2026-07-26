@@ -71,6 +71,10 @@ type ReportLike = {
   lectureFeedback?: string;
   examFeedback?: string;
   instructorFeedback?: string;
+  studentResponseToLecturesPct?: number;
+  studentResponseToAssignmentsPct?: number;
+  studentResponseToQuizPct?: number;
+  studentResponseToCourseworkPct?: number;
 };
 
 export function adaptExaminerReport(report: ReportLike): ReportExportPayload {
@@ -163,6 +167,37 @@ export function adaptCourseRepReport(report: ReportLike): ReportExportPayload {
   };
 }
 
+export function adaptSupervisorReport(report: ReportLike): ReportExportPayload {
+  return {
+    title: "Supervisor Report",
+    subtitle: `${report.facultyId?.name ?? "Faculty"} • ${report.departmentId?.name ?? "Department"}`,
+    meta: [
+      { label: "Faculty", value: report.facultyId?.name ?? "-" },
+      { label: "Department", value: report.departmentId?.name ?? "-" },
+      { label: "Academic Session", value: report.academicSession ?? "-" },
+      { label: "Semester", value: report.semester === "FIRST" ? "First" : "Second" },
+      { label: "Status", value: report.status ?? "-" },
+      { label: "Submitted By", value: report.submittedBy?.name ?? "-" },
+    ],
+    sections: [
+      {
+        heading: "Student Response Metrics",
+        rows: [
+          { label: "Lectures", value: `${report.studentResponseToLecturesPct ?? 0}%` },
+          { label: "Assignments", value: `${report.studentResponseToAssignmentsPct ?? 0}%` },
+          { label: "Quizzes", value: `${report.studentResponseToQuizPct ?? 0}%` },
+          { label: "Coursework", value: `${report.studentResponseToCourseworkPct ?? 0}%` },
+        ],
+      },
+      {
+        heading: "Comments",
+        rows: [{ label: "Comments", value: report.comments || "None" }],
+      },
+    ],
+    generatedAt: new Date(),
+  };
+}
+
 export function adaptCoordinatorReport(report: ReportLike): ReportExportPayload {
   return {
     title: "PG Coordinator's Report",
@@ -236,12 +271,82 @@ export function adaptStudentReport(report: ReportLike): ReportExportPayload {
   };
 }
 
-export function getAdapter(type: "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER") {
-  const map = {
+export function adaptDirectorReport(report: Record<string, unknown>): ReportExportPayload {
+  const facultyName = typeof report.facultyName === "string" ? report.facultyName : "All faculties";
+  const academicSession = typeof report.academicSession === "string" ? report.academicSession : "All";
+  const semester = typeof report.semester === "string" ? report.semester : "All";
+
+  return {
+    title: "Director Summary",
+    subtitle: academicSession !== "All" ? `${academicSession}${semester !== "All" ? ` • ${semester}` : ""}` : "Portal oversight summary",
+    meta: [
+      { label: "Faculty", value: facultyName },
+      { label: "Academic Session", value: academicSession },
+      { label: "Semester", value: semester },
+    ],
+    sections: [
+      {
+        heading: "Student Feedback",
+        rows: [
+          { label: "Submitted student reports", value: String(report.studentReportCount ?? 0) },
+          { label: "Avg teaching quality", value: `${report.avgTeachingQuality ?? 0}%` },
+          { label: "Avg exam preparedness", value: `${report.avgExamPreparedness ?? 0}%` },
+          { label: "Avg course materials rating", value: `${report.avgCourseMaterialsRating ?? 0}%` },
+        ],
+      },
+      {
+        heading: "LMS Rep Reports",
+        rows: [
+          { label: "Submitted LMS rep reports", value: String(report.lmsReportCount ?? 0) },
+          { label: "Avg lecture compliance", value: `${report.avgLectureComplianceRate ?? 0}%` },
+          { label: "Avg lecturer training rating", value: `${report.avgLecturerTrainingRating ?? 0}%` },
+          { label: "Ready for quizzes/exams", value: String(report.portalReadinessReadyCount ?? 0) },
+        ],
+      },
+      {
+        heading: "Coordinator Reports",
+        rows: [
+          { label: "Submitted coordinator reports", value: String(report.coordinatorReportCount ?? 0) },
+          { label: "Avg programme compliance", value: `${report.avgCoordinatorLectureComplianceRate ?? 0}%` },
+          { label: "Avg lecturer response rate", value: `${report.avgLecturerResponseRate ?? 0}%` },
+          { label: "Misconduct flags", value: String(report.coordinatorMisconductCount ?? 0) },
+        ],
+      },
+      {
+        heading: "Examiner Reports",
+        rows: [
+          { label: "Submitted examiner reports", value: String(report.examinerReportCount ?? 0) },
+        ],
+      },
+      {
+        heading: "Supervisor Reports",
+        rows: [
+          { label: "Submitted supervisor reports", value: String(report.supervisorReportCount ?? 0) },
+          { label: "Avg student response metrics", value: `${report.avgSupervisorResponsePct ?? 0}%` },
+        ],
+      },
+    ],
+    generatedAt: new Date(),
+  };
+}
+
+type ExportAdapterMap = {
+  STUDENT: (report: ReportLike) => ReportExportPayload;
+  LMS_REP: (report: ReportLike) => ReportExportPayload;
+  PG_COORDINATOR: (report: ReportLike) => ReportExportPayload;
+  EXAMINER: (report: ReportLike) => ReportExportPayload;
+  SUPERVISOR: (report: ReportLike) => ReportExportPayload;
+  DIRECTOR: (report: Record<string, unknown>) => ReportExportPayload;
+};
+
+export function getAdapter(type: "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER" | "SUPERVISOR" | "DIRECTOR") {
+  const map: ExportAdapterMap = {
     STUDENT: adaptStudentReport,
     LMS_REP: adaptCourseRepReport,
     PG_COORDINATOR: adaptCoordinatorReport,
     EXAMINER: adaptExaminerReport,
+    SUPERVISOR: adaptSupervisorReport,
+    DIRECTOR: adaptDirectorReport,
   };
   return map[type];
 }

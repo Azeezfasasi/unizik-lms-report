@@ -1,12 +1,14 @@
 import { connectDB } from "@/lib/db/connectDB";
 import Course from "@/models/Course";
 import CourseRepReport from "@/models/CourseRepReport";
+import CoordinatorReport from "@/models/CoordinatorReport";
 import Curriculum from "@/models/Curriculum";
 import Department from "@/models/Department";
 import ExaminerReport from "@/models/ExaminerReport";
 import Faculty from "@/models/Faculty";
-import Report from "@/models/Report";
+import StudentReport from "@/models/StudentReport";
 import Student from "@/models/Student";
+import SupervisorReport from "@/models/SupervisorReport";
 import TeachingAssignment from "@/models/TeachingAssignment";
 import User from "@/models/User";
 
@@ -617,7 +619,7 @@ export async function getReportsWithStudents(studentEmail?: string): Promise<Rep
       filter.studentId = student._id;
     }
 
-    const reports = await Report.find(filter).lean();
+    const reports = await StudentReport.find(filter).lean();
     const students = await Student.find({}).lean();
 
     return reports.map((report: DocumentWithOptionalId) => {
@@ -656,7 +658,7 @@ export async function getReportsForStudentEmail(studentEmail?: string): Promise<
     }
 
     const student = matchedStudents[0];
-    const reports = await Report.find({ studentId: student._id }).lean();
+    const reports = await StudentReport.find({ studentId: student._id }).lean();
 
     const mapped = reports.map((report: DocumentWithOptionalId) => ({
       ...report,
@@ -675,7 +677,7 @@ export async function getReportsForStudentEmail(studentEmail?: string): Promise<
 export async function getReportById(id: string) {
   try {
     await connectDB();
-    const report = await Report.findById(id).lean();
+    const report = await StudentReport.findById(id).lean();
     return report ? { ...report, id: toObjectIdString(report._id) } : null;
   } catch {
     return null;
@@ -719,11 +721,205 @@ export async function getDashboardSummary() {
       Faculty.countDocuments(),
       Curriculum.countDocuments(),
       Student.countDocuments(),
-      Report.countDocuments({ status: "SUBMITTED" }),
+      StudentReport.countDocuments({ status: "SUBMITTED" }),
     ]);
 
     return { faculties, curriculums, students, submittedReports: reports };
   } catch {
     return { faculties: 0, curriculums: 0, students: 0, submittedReports: 0 };
+  }
+}
+
+function buildAcademicSessionFilter(academicSession?: string): string[] | undefined {
+  if (!academicSession) return undefined;
+  const trimmed = academicSession.trim();
+  if (!trimmed) return undefined;
+
+  const sessions = new Set<string>();
+  sessions.add(trimmed);
+
+  const rangeMatch = trimmed.match(/^(\d{4})[\/-](\d{4})$/);
+  if (rangeMatch) {
+    const [, startYear, endYear] = rangeMatch;
+    sessions.add(startYear);
+    sessions.add(endYear);
+    sessions.add(`${startYear}/${endYear}`);
+  } else if (/^\d{4}$/.test(trimmed)) {
+    const year = Number(trimmed);
+    sessions.add(`${year}/${year + 1}`);
+    if (year > 1900) {
+      sessions.add(`${year - 1}/${year}`);
+    }
+  }
+
+  return Array.from(sessions);
+}
+
+export async function getDirectorSummary(academicSession?: string, semester?: "FIRST" | "SECOND") {
+  try {
+    await connectDB();
+
+    const academicSessionFilter = buildAcademicSessionFilter(academicSession);
+    const lmsFilter: Record<string, unknown> = {};
+    const coordinatorFilter: Record<string, unknown> = {};
+    const supervisorFilter: Record<string, unknown> = {};
+    const examinerFilter: Record<string, unknown> = {};
+    const studentFilter: Record<string, unknown> = {};
+
+    if (academicSessionFilter) {
+      lmsFilter.academicSession = { $in: academicSessionFilter };
+      coordinatorFilter.academicSession = { $in: academicSessionFilter };
+      supervisorFilter.academicSession = { $in: academicSessionFilter };
+      examinerFilter.academicSession = { $in: academicSessionFilter };
+      studentFilter.academicSession = { $in: academicSessionFilter };
+    }
+    if (semester) {
+      lmsFilter.semester = semester;
+      coordinatorFilter.semester = semester;
+      supervisorFilter.semester = semester;
+      examinerFilter.semester = semester;
+      studentFilter.semester = semester;
+    }
+
+    const [studentSummary, lmsReports, coordinatorSummary, supervisorSummary, examinerSummary] = await Promise.all([
+      StudentReport.aggregate([
+        { $match: studentFilter },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+            avgTeachingQuality: { $avg: "$teachingQuality" },
+            avgExamPreparedness: { $avg: "$examPreparedness" },
+            avgCourseMaterialsRating: { $avg: "$courseMaterialsRating" },
+          },
+        },
+      ]),
+      CourseRepReport.find(lmsFilter).lean(),
+      CoordinatorReport.aggregate([
+        { $match: coordinatorFilter },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+            avgLectureComplianceRate: { $avg: "$lectureComplianceRate" },
+            avgLecturerResponseRate: { $avg: "$lecturerResponseRate" },
+            avgLecturerTrainingRating: { $avg: "$lecturerTrainingRating" },
+            misconductCount: {
+              $sum: {
+                $cond: [{ $in: ["$misconductSeverity", ["MINOR", "SERIOUS"]] }, 1, 0],
+              },
+            },
+          },
+        },
+      ]),
+      SupervisorReport.aggregate([
+        { $match: supervisorFilter },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+            avgStudentResponseToLectures: { $avg: "$studentResponseToLecturesPct" },
+            avgStudentResponseToAssignments: { $avg: "$studentResponseToAssignmentsPct" },
+            avgStudentResponseToQuiz: { $avg: "$studentResponseToQuizPct" },
+            avgStudentResponseToCoursework: { $avg: "$studentResponseToCourseworkPct" },
+          },
+        },
+      ]),
+      ExaminerReport.aggregate([
+        { $match: examinerFilter },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
+    const studentData = studentSummary[0] ?? {
+      count: 0,
+      avgTeachingQuality: 0,
+      avgExamPreparedness: 0,
+      avgCourseMaterialsRating: 0,
+    };
+
+    const supervisorData = supervisorSummary[0] ?? {
+      count: 0,
+      avgStudentResponseToLectures: 0,
+      avgStudentResponseToAssignments: 0,
+      avgStudentResponseToQuiz: 0,
+      avgStudentResponseToCoursework: 0,
+    };
+    const examinerData = examinerSummary[0] ?? { count: 0 };
+
+    const avgSupervisorResponsePct = supervisorData.count
+      ? Math.round(
+          (Number(supervisorData.avgStudentResponseToLectures) +
+            Number(supervisorData.avgStudentResponseToAssignments) +
+            Number(supervisorData.avgStudentResponseToQuiz) +
+            Number(supervisorData.avgStudentResponseToCoursework)) /
+            4
+        )
+      : 0;
+
+    const totalScheduled = lmsReports.reduce(
+      (sum: number, report: { totalLecturesScheduled?: number }) => sum + Number(report.totalLecturesScheduled ?? 0),
+      0
+    );
+    const totalHeld = lmsReports.reduce(
+      (sum: number, report: { totalLecturesHeld?: number }) => sum + Number(report.totalLecturesHeld ?? 0),
+      0
+    );
+    const avgLectureComplianceRate = totalScheduled > 0 ? Math.round((totalHeld / totalScheduled) * 100) : 0;
+    const portalReadinessReadyCount = lmsReports.filter(
+      (report: { portalReadinessForQuizAndExam?: string }) => report.portalReadinessForQuizAndExam === "READY"
+    ).length;
+
+    const coordinatorData = coordinatorSummary[0] ?? {
+      count: 0,
+      avgLectureComplianceRate: 0,
+      avgLecturerResponseRate: 0,
+      avgLecturerTrainingRating: 0,
+      misconductCount: 0,
+    };
+
+    return {
+      academicSession: academicSession ?? "",
+      semester: semester ?? undefined,
+      studentReportCount: studentData.count,
+      avgTeachingQuality: Math.round(studentData.avgTeachingQuality ?? 0),
+      avgExamPreparedness: Math.round(studentData.avgExamPreparedness ?? 0),
+      avgCourseMaterialsRating: Math.round(studentData.avgCourseMaterialsRating ?? 0),
+      lmsReportCount: lmsReports.length,
+      avgLectureComplianceRate,
+      avgLecturerTrainingRating: Math.round(coordinatorData.avgLecturerTrainingRating ?? 0),
+      portalReadinessReadyCount,
+      coordinatorReportCount: coordinatorData.count,
+      avgCoordinatorLectureComplianceRate: Math.round(coordinatorData.avgLectureComplianceRate ?? 0),
+      avgLecturerResponseRate: Math.round(coordinatorData.avgLecturerResponseRate ?? 0),
+      coordinatorMisconductCount: coordinatorData.misconductCount,
+      supervisorReportCount: supervisorData.count,
+      examinerReportCount: examinerData.count,
+      avgSupervisorResponsePct,
+    };
+  } catch {
+    return {
+      academicSession: academicSession ?? "",
+      semester: semester ?? undefined,
+      studentReportCount: 0,
+      avgTeachingQuality: 0,
+      avgExamPreparedness: 0,
+      avgCourseMaterialsRating: 0,
+      lmsReportCount: 0,
+      avgLectureComplianceRate: 0,
+      portalReadinessReadyCount: 0,
+      coordinatorReportCount: 0,
+      avgCoordinatorLectureComplianceRate: 0,
+      avgLecturerResponseRate: 0,
+      coordinatorMisconductCount: 0,
+      supervisorReportCount: 0,
+      examinerReportCount: 0,
+      avgSupervisorResponsePct: 0,
+    };
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import sendTransactionalEmail from "@/lib/email/brevoClient";
+import { sendTransactionalEmail } from "@/lib/email/brevoClient";
 
 export async function POST(request: Request) {
   const { email, name, reportId } = await request.json();

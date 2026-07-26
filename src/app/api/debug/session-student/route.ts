@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import Student from "@/models/Student";
-import Report from "@/models/Report";
+import StudentReport from "@/models/StudentReport";
 
 export async function GET(_request: Request) {
   void _request;
@@ -21,7 +21,7 @@ export async function GET(_request: Request) {
 
   const safe = String(email).replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").trim();
   const students = await Student.find({ email: new RegExp(`^${safe}$`, "i") }).lean();
-  const reports = await Report.find({}).lean();
+  const reports = await StudentReport.find({}).lean();
 
   const matchedReports = reports.filter((r) => students.some((s) => String(s._id) === String(r.studentId))).map((r) => String(r._id));
 

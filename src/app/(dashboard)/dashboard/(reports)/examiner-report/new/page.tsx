@@ -101,6 +101,9 @@ export default function NewExaminerReportPage() {
   const [markingSchemeUrl, setMarkingSchemeUrl] = useState("");
   const [numberOfQuestions, setNumberOfQuestions] = useState("");
   const [comments, setComments] = useState("");
+  const [malpracticeFlagged, setMalpracticeFlagged] = useState(false);
+  const [moderatorComments, setModeratorComments] = useState("");
+  const [complianceNotes, setComplianceNotes] = useState("");
   const [score, setScore] = useState("80");
   const [submittedAt, setSubmittedAt] = useState(() => new Date().toISOString().slice(0, 10));
   const [message, setMessage] = useState("");
@@ -253,6 +256,9 @@ export default function NewExaminerReportPage() {
     setMarkingSchemeUrl("");
     setNumberOfQuestions("");
     setComments("");
+    setMalpracticeFlagged(false);
+    setModeratorComments("");
+    setComplianceNotes("");
     setScore("80");
     setSubmittedAt(new Date().toISOString().slice(0, 10));
     setErrors({});
@@ -290,6 +296,9 @@ export default function NewExaminerReportPage() {
         markingSchemeUrl: markingSchemeUrl || undefined,
         numberOfQuestions: numberOfQuestions ? Number(numberOfQuestions) : undefined,
         comments,
+        malpracticeFlagged,
+        moderatorComments: moderatorComments || undefined,
+        complianceNotes: complianceNotes || undefined,
         score: Number(score),
         status: "SUBMITTED",
         submittedAt: new Date(submittedAt).toISOString(),
@@ -600,6 +609,42 @@ export default function NewExaminerReportPage() {
                   className={`${baseInput} ${okInput} resize-none`}
                   rows={4}
                   placeholder="Your evaluation and recommended improvements"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 mb-4">
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <input
+                    id="malpracticeFlagged"
+                    type="checkbox"
+                    checked={malpracticeFlagged}
+                    onChange={(event) => setMalpracticeFlagged(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500/30"
+                  />
+                  <label htmlFor="malpracticeFlagged" className="text-sm font-medium text-slate-700">
+                    Malpractice flagged
+                  </label>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Moderator comments</label>
+                  <textarea
+                    value={moderatorComments}
+                    onChange={(event) => setModeratorComments(event.target.value)}
+                    className={`${baseInput} ${okInput} resize-none`}
+                    rows={4}
+                    placeholder="Notes from the moderator or review officer"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Compliance notes</label>
+                <textarea
+                  value={complianceNotes}
+                  onChange={(event) => setComplianceNotes(event.target.value)}
+                  className={`${baseInput} ${okInput} resize-none`}
+                  rows={4}
+                  placeholder="Compliance observations or follow-up actions"
                 />
               </div>
 

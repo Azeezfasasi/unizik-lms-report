@@ -1,10 +1,12 @@
 import { connectDB } from "@/lib/db/connectDB";
 import CourseRepReport from "@/models/CourseRepReport";
+import "@/models/LectureSchedule";
 import { ReportStatusBadge } from "@/components/reports/ReportStatusBadge";
 import { ExportButtons } from "@/components/reports/ExportButtons";
+import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CircleArrowLeft } from "lucide-react";
+import { CircleArrowLeft, Edit2 } from "lucide-react";
 
 export default async function LmsRepReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,6 +26,11 @@ export default async function LmsRepReportDetailPage({ params }: { params: Promi
     academicSession?: string;
     submittedBy?: { name?: string };
     lectureCompliance?: Array<{ lectureScheduleId?: { title?: string }; held?: boolean }>;
+    portalReadinessForQuizAndExam?: "NOT_READY" | "PARTIALLY_READY" | "READY";
+    lecturerTrainingRating?: number;
+    totalLecturesHeld?: number;
+    totalLecturesScheduled?: number;
+    generalComments?: string;
     issues?: string;
   };
 
@@ -44,7 +51,21 @@ export default async function LmsRepReportDetailPage({ params }: { params: Promi
           </div>
           <p className="mt-1 text-sm text-slate-500">{r.courseId?.code} · {r.academicSession} · submitted by {r.submittedBy?.name}</p>
         </div>
-        <ExportButtons type="lms-rep" id={r._id.toString()} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/dashboard/lms-rep-report/${r._id.toString()}/edit`}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-teal-500 hover:text-teal-600"
+          >
+            <Edit2 className="h-4 w-4" />
+            Edit
+          </Link>
+          <DeleteResourceButton
+            deleteUrl={`/api/reports/lms-rep/${r._id.toString()}`}
+            resourceName="LMS rep report"
+            redirectTo="/dashboard/lms-rep-report"
+          />
+          <ExportButtons type="lms-rep" id={r._id.toString()} />
+        </div>
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -60,6 +81,28 @@ export default async function LmsRepReportDetailPage({ params }: { params: Promi
           ))}
         </div>
       </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">Portal readiness</p>
+          <p className="mt-3 text-sm text-slate-600">{r.portalReadinessForQuizAndExam === "READY" ? "Ready" : r.portalReadinessForQuizAndExam === "NOT_READY" ? "Not ready" : "Partially ready"}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">Lecturer training</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-900">{r.lecturerTrainingRating}%</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">Lectures held</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-900">{r.totalLecturesHeld}/{r.totalLecturesScheduled}</p>
+        </div>
+      </div>
+
+      {r.generalComments ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <h3 className="text-base font-semibold text-slate-900">General comments</h3>
+          <p className="mt-2 text-sm text-slate-600">{r.generalComments}</p>
+        </div>
+      ) : null}
 
       {r.issues ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">

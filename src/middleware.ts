@@ -20,6 +20,7 @@ const authenticatedRoutes = [
   "/dashboard",
   "/dashboard/reports/",
   "/dashboard/lms-rep-report",
+  "/dashboard/supervisor-report",
   "/dashboard/lectures-calendar",
   "/dashboard/pg-course-report",
 ];

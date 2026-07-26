@@ -5,10 +5,12 @@ import { buildExcelBuffer } from "@/lib/export/toExcel";
 import { buildWordBuffer } from "@/lib/export/toWord";
 import { buildPdfBuffer } from "@/lib/export/toPdf";
 import { uploadAndRegister } from "@/lib/export/uploadAndRegister";
-import Report from "@/models/Report";
+import { getDirectorSummary } from "@/lib/data/portal";
+import StudentReport from "@/models/StudentReport";
 import CourseRepReport from "@/models/CourseRepReport";
 import CoordinatorReport from "@/models/CoordinatorReport";
 import ExaminerReport from "@/models/ExaminerReport";
+import SupervisorReport from "@/models/SupervisorReport";
 
 type QueryHandle = {
   populate: (path: string) => QueryHandle;
@@ -26,17 +28,20 @@ type ReportRecord = Record<string, unknown> & {
 };
 
 const MODEL_MAP: Record<string, unknown> = {
-  student: Report,
+  student: StudentReport,
   "lms-rep": CourseRepReport,
   coordinator: CoordinatorReport,
   examiner: ExaminerReport,
+  supervisor: SupervisorReport,
 };
 
-const TYPE_MAP: Record<string, "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER"> = {
+const TYPE_MAP: Record<string, "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER" | "SUPERVISOR" | "DIRECTOR"> = {
   student: "STUDENT",
   "lms-rep": "LMS_REP",
   coordinator: "PG_COORDINATOR",
   examiner: "EXAMINER",
+  supervisor: "SUPERVISOR",
+  director: "DIRECTOR",
 };
 
 const POPULATE_MAP: Record<string, string[]> = {
@@ -44,6 +49,7 @@ const POPULATE_MAP: Record<string, string[]> = {
   "lms-rep": ["courseId", "curriculumId", "submittedBy", "lectureCompliance.lectureScheduleId"],
   coordinator: ["curriculumId", "preparedBy"],
   examiner: ["lecturerId", "facultyId", "departmentId", "courseId", "statusHistory.changedBy"],
+  supervisor: ["facultyId", "departmentId", "submittedBy"],
 };
 
 export async function GET(
@@ -54,18 +60,30 @@ export async function GET(
   const model = MODEL_MAP[type] as QueryModel | undefined;
   const reportType = TYPE_MAP[type];
 
-  if (!model || !reportType) {
+  if (!reportType) {
     return NextResponse.json({ message: "Unknown report type" }, { status: 400 });
   }
 
   await connectDB();
 
-  let query: QueryHandle = model.findById(id);
-  for (const path of POPULATE_MAP[type] ?? []) query = query.populate(path);
-  const report = await query.lean();
+  let report: Record<string, unknown> | null = null;
+  if (type === "director") {
+    const query = new URL(_req.url);
+    const academicSession = query.searchParams.get("academicSession") ?? undefined;
+    const semester = query.searchParams.get("semester") as "FIRST" | "SECOND" | undefined;
+    report = await getDirectorSummary(academicSession, semester);
+  } else {
+    if (!model) {
+      return NextResponse.json({ message: "Unknown report type" }, { status: 400 });
+    }
 
-  if (!report) {
-    return NextResponse.json({ message: "Report not found" }, { status: 404 });
+    let query: QueryHandle = model.findById(id);
+    for (const path of POPULATE_MAP[type] ?? []) query = query.populate(path);
+    report = await query.lean();
+
+    if (!report) {
+      return NextResponse.json({ message: "Report not found" }, { status: 404 });
+    }
   }
 
   const adapter = getAdapter(reportType);
@@ -100,11 +118,13 @@ export async function GET(
       ? (facultyValue as { _id?: { toString: () => string } })._id?.toString()
       : facultyValue?.toString();
 
+  const typedReportType = reportType as Parameters<typeof uploadAndRegister>[0]["reportType"];
+
   uploadAndRegister({
     buffer,
     fileName,
     format: fmt as "PDF" | "DOCX" | "XLSX",
-    reportType,
+    reportType: typedReportType,
     sourceId: id,
     facultyId: facultyIdValue,
     generatedBy: (report as ReportRecord).preparedBy?._id?.toString() ?? (report as ReportRecord).submittedBy?._id?.toString(),

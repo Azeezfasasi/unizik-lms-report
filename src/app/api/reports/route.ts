@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
-import Report from "@/models/Report";
+import StudentReport from "@/models/StudentReport";
 import Student from "@/models/Student";
 
 export async function GET(request: Request) {
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   if (status) filter.status = status;
   if (facultyId) filter.facultyId = facultyId;
 
-  const reports = await Report.find(filter).lean();
+  const reports = await StudentReport.find(filter).lean();
   return NextResponse.json(reports);
 }
 
@@ -43,6 +43,6 @@ export async function POST(request: Request) {
     };
   }
 
-  const report = await Report.create(reportPayload);
+  const report = await StudentReport.create(reportPayload);
   return NextResponse.json(report, { status: 201 });
 }

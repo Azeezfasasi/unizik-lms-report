@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connectDB";
 import CourseRepReport from "@/models/CourseRepReport";
+import "@/models/LectureSchedule";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
@@ -30,4 +31,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   if (!report) return NextResponse.json({ message: "Not found" }, { status: 404 });
   return NextResponse.json(report);
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await connectDB();
+  const { id } = await params;
+
+  const report = await CourseRepReport.findByIdAndDelete(id);
+  if (!report) return NextResponse.json({ message: "Not found" }, { status: 404 });
+
+  return NextResponse.json({ message: "LMS rep report deleted" });
 }

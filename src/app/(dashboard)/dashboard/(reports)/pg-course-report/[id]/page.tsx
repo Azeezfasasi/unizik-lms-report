@@ -12,9 +12,13 @@ interface CoordinatorReportDetail {
   preparedBy?: { name?: string };
   status: string;
   academicSession?: string;
+  semester?: string;
   totalStudents?: number;
   totalCourses?: number;
   lectureComplianceRate?: number;
+  lecturerResponseRate?: number;
+  misconductSeverity?: "NONE" | "MINOR" | "SERIOUS";
+  generalComments?: string;
   examinerReportsSummary?: { submitted?: number; approved?: number; pending?: number };
   examTimetableStatus?: string;
   recommendations?: string;
@@ -71,6 +75,28 @@ export default async function CoordinatorReportDetailPage({ params }: { params: 
           </div>
         </div>
       </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">Lecturer response</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-900">{r.lecturerResponseRate}%</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">Misconduct severity</p>
+          <p className="mt-3 text-sm text-slate-600">{r.misconductSeverity === "NONE" ? "None" : r.misconductSeverity === "MINOR" ? "Minor" : "Serious"}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">Duration</p>
+          <p className="mt-3 text-sm text-slate-600">{r.academicSession} · {r.semester}</p>
+        </div>
+      </div>
+
+      {r.generalComments ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <h3 className="text-base font-semibold text-slate-900">General comments</h3>
+          <p className="mt-2 text-sm text-slate-600">{r.generalComments}</p>
+        </div>
+      ) : null}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <h3 className="text-base font-semibold text-slate-900">Recommendations</h3>

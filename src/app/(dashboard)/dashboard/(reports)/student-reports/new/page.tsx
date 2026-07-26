@@ -159,7 +159,7 @@ export default function NewStudentReportPage() {
             Student
             {isStudent ? (
               <input
-                value={selectedStudent ? `${selectedStudent.fullName} — ${selectedStudent.matricNumber}` : "Loading student..."}
+                value={selectedStudent ? `${selectedStudent.fullName} - ${selectedStudent.matricNumber}` : "Loading student..."}
                 disabled
                 className="w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-700"
               />
@@ -186,7 +186,7 @@ export default function NewStudentReportPage() {
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
-            Curriculum
+            Course
             <select value={curriculumId} onChange={(event) => setCurriculumId(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
               {curriculums.map((curriculum) => (
                 <option key={curriculum._id} value={curriculum._id}>{curriculum.programName}</option>

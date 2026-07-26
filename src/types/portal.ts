@@ -1,4 +1,4 @@
-export type Role = "ADMIN" | "FACULTY_OFFICER" | "EXAMINER" | "STUDENT";
+export type Role = "ADMIN" | "FACULTY_OFFICER" | "EXAMINER" | "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "SUPERVISOR" | "DIRECTOR";
 export type ReportStatus = "DRAFT" | "SUBMITTED";
 
 export interface Faculty {

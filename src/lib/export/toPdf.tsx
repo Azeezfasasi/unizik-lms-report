@@ -1,8 +1,23 @@
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import fs from "fs";
+import path from "path";
+import { Document, Page, Text, View, StyleSheet, Image, renderToBuffer } from "@react-pdf/renderer";
 import { ReportExportPayload } from "./adapters";
+
+const logoPath = path.join(process.cwd(), "public", "images", "unizik.png");
+let universityLogo: string | undefined;
+try {
+  const logoBuffer = fs.readFileSync(logoPath);
+  universityLogo = `data:image/png;base64,${logoBuffer.toString("base64")}`;
+} catch {
+  universityLogo = undefined;
+}
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica" },
+  header: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+  logo: { width: 60, height: 60, marginRight: 12 },
+  headerText: { flex: 1 },
+  universityName: { fontSize: 16, fontWeight: 700, color: "#0F766E" },
   title: { fontSize: 20, fontWeight: 700, color: "#0F766E", marginBottom: 4 },
   subtitle: { fontSize: 12, color: "#64748B", marginBottom: 16, fontStyle: "italic" },
   metaRow: { flexDirection: "row", marginBottom: 4 },
@@ -21,7 +36,16 @@ function ReportDocument({ payload }: { payload: ReportExportPayload }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>{payload.title}</Text>
+        <View style={styles.header}>
+          {universityLogo && (
+            /* eslint-disable-next-line jsx-a11y/alt-text */
+            <Image style={styles.logo} src={universityLogo} />
+          )}
+          <View style={styles.headerText}>
+            <Text style={styles.universityName}>Nnamdi Azikiwe University</Text>
+            <Text style={styles.title}>{payload.title}</Text>
+          </View>
+        </View>
         <Text style={styles.subtitle}>{payload.subtitle}</Text>
 
         {payload.meta.map((item, i) => (
