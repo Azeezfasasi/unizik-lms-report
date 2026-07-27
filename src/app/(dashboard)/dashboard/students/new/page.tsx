@@ -274,7 +274,7 @@ export default function NewStudentPage() {
               <SectionHeading eyebrow="Step 1" title="Student details" />
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <RequiredLabel>Matric number</RequiredLabel>
+                  <RequiredLabel>Registration number</RequiredLabel>
                   <input
                     value={matricNumber}
                     onChange={(event) => {
