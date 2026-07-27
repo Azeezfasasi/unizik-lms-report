@@ -240,7 +240,7 @@ export function adaptStudentReport(report: ReportLike): ReportExportPayload {
     title: "Student Report",
     subtitle: report.studentId?.fullName ?? "Student",
     meta: [
-      { label: "Matric Number", value: report.studentId?.matricNumber ?? "-" },
+      { label: "Registration Number", value: report.studentId?.matricNumber ?? "-" },
       { label: "Faculty", value: report.facultyId?.name ?? "-" },
       { label: "Programme", value: report.curriculumId?.programName ?? "-" },
       { label: "Status", value: report.status ?? "-" },

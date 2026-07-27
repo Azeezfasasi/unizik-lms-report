@@ -164,6 +164,7 @@ export default function ProfileForm({ userId, initialName, initialEmail, role }:
               disabled={profileSubmitting}
               className={`${baseInput} ${profileErrors.name ? errInput : okInput} disabled:bg-slate-50 disabled:text-slate-400`}
               placeholder="Ada Okafor"
+              readOnly
             />
             <FieldError message={profileErrors.name} />
           </div>

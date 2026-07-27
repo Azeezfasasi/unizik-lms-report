@@ -37,6 +37,9 @@ export default function NewStudentReportPage() {
   const [facultyId, setFacultyId] = useState("");
   const [curriculumId, setCurriculumId] = useState("");
   const selectedStudent = students.find((student) => student._id === studentId);
+  const studentDisplayName = isStudent
+    ? session?.user?.name ?? selectedStudent?.fullName ?? ""
+    : selectedStudent ? `${selectedStudent.fullName} - ${selectedStudent.matricNumber}` : "";
   const [studentMatchCount, setStudentMatchCount] = useState<number>(0);
   const [teachingQuality, setTeachingQuality] = useState(3);
   const [examPreparedness, setExamPreparedness] = useState(3);
@@ -159,7 +162,7 @@ export default function NewStudentReportPage() {
             Student
             {isStudent ? (
               <input
-                value={selectedStudent ? `${selectedStudent.fullName} - ${selectedStudent.matricNumber}` : "Loading student..."}
+                value={studentDisplayName || "Loading student..."}
                 disabled
                 className="w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-700"
               />
@@ -257,7 +260,7 @@ export default function NewStudentReportPage() {
           </label>
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
             <p className="font-semibold text-slate-900">Prepared by</p>
-            <p className="mt-2">{session?.user?.name ?? "Loading user..."}</p>
+            <p className="mt-2">{session?.user?.name ?? selectedStudent?.fullName ?? "Loading user..."}</p>
           </div>
         </div>
 

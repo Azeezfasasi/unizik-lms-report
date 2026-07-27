@@ -1,5 +1,18 @@
 import Link from "next/link";
+import StudentActions from "@/components/students/StudentActions";
+import { Pagination } from "@/components/shared/Pagination";
+import { StudentFilters } from "@/components/students/StudentFilters";
 import { getStudents, StudentItem } from "@/lib/data/portal";
+
+const PAGE_SIZE = 9;
+
+type StudentsPageProps = {
+  searchParams?: {
+    q?: string;
+    status?: string;
+    page?: string;
+  };
+};
 
 function initials(fullName: string) {
   const parts = fullName.trim().split(/\s+/);
@@ -21,8 +34,30 @@ function avatarTone(seed: string) {
   return tones[index];
 }
 
-export default async function StudentsPage() {
+export default async function StudentsPage({ searchParams }: StudentsPageProps) {
   const students: StudentItem[] = await getStudents();
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const query = String((resolvedSearchParams.q ?? "")).trim().toLowerCase();
+  const statusFilter = String((resolvedSearchParams.status ?? "all")).toUpperCase();
+  const pageNumber = Number(resolvedSearchParams.page ?? 1);
+
+  const qLower = query;
+  const filteredStudents = students
+    .filter((student) => {
+      const name = (student.fullName ?? "").toLowerCase();
+      const matric = (student.matricNumber ?? "").toLowerCase();
+      const email = (student.email ?? "").toLowerCase();
+
+      const matchesQuery = !qLower || name.includes(qLower) || matric.includes(qLower) || email.includes(qLower);
+      const matchesStatus = statusFilter === "ALL" || ((student.status ?? "ACTIVE").toUpperCase() === statusFilter);
+      return matchesQuery && matchesStatus;
+    })
+    .sort((a, b) => (a.fullName ?? "").localeCompare(b.fullName ?? ""));
+
+  const totalResults = filteredStudents.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(pageNumber, 1), totalPages);
+  const visibleStudents = filteredStudents.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -31,7 +66,7 @@ export default async function StudentsPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-600">Student Directory</p>
           <h2 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">Programme Students</h2>
           <p className="mt-1 text-sm text-slate-500">
-            {students.length} {students.length === 1 ? "student" : "students"} enrolled.
+            {totalResults} {totalResults === 1 ? "student" : "students"} matched.
           </p>
         </div>
         <Link
@@ -45,9 +80,13 @@ export default async function StudentsPage() {
         </Link>
       </div>
 
-      {students.length > 0 ? (
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <StudentFilters />
+      </div>
+
+      {visibleStudents.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {students.map((student) => (
+          {visibleStudents.map((student) => (
             <div
               key={student.id}
               className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
@@ -78,19 +117,31 @@ export default async function StudentsPage() {
                   <span className="truncate">{student.email}</span>
                 </a>
 
-                <span className="inline-flex items-center rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700">
-                  {student.programLevel}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                    {student.status ?? "ACTIVE"}
+                  </span>
+                  <Link
+                    href={`/dashboard/students/${student.id}`}
+                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50"
+                  >
+                    Edit
+                  </Link>
+                </div>
+
+                <StudentActions studentId={student.id} initialStatus={student.status} />
               </div>
             </div>
           ))}
         </div>
       ) : (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-          <p className="text-sm font-medium text-slate-600">No students yet</p>
-          <p className="mt-1 text-sm text-slate-500">Add your first student to see them listed here.</p>
+          <p className="text-sm font-medium text-slate-600">No students matched your search.</p>
+          <p className="mt-1 text-sm text-slate-500">Try changing the search term or status filter.</p>
         </div>
       )}
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} />
     </div>
   );
 }

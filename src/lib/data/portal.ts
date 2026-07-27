@@ -500,6 +500,7 @@ export interface StudentItem {
   matricNumber: string;
   email?: string;
   programLevel?: string;
+  status?: "ACTIVE" | "SUSPENDED" | "GRADUATED";
   [key: string]: unknown;
 }
 

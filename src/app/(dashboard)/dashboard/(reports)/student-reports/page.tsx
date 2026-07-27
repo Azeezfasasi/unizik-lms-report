@@ -8,6 +8,7 @@ import User from "@/models/User";
 export default async function StudentReportsPage() {
   const session = await getServerSession(authOptions);
   const userRole = session?.user?.role?.toString().toUpperCase().trim();
+  const studentName = session?.user?.name ?? "";
   let studentEmail: string | undefined =
     userRole === "STUDENT" && typeof session?.user?.email === "string"
       ? session.user.email.toString().trim().toLowerCase()
@@ -39,6 +40,9 @@ export default async function StudentReportsPage() {
               ? `${faculties.length} ${faculties.length === 1 ? "faculty" : "faculties"} available.`
               : "No faculties are available yet."}
           </p>
+          {userRole === "STUDENT" && studentName ? (
+            <p className="mt-3 text-sm font-semibold text-slate-700">Student: {studentName}</p>
+          ) : null}
         </div>
         <Link
           href="/dashboard/student-reports/new"
@@ -81,7 +85,9 @@ export default async function StudentReportsPage() {
               <tbody className="divide-y divide-slate-100">
                 {studentReports.map((report) => (
                   <tr key={report.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-slate-800">{report.studentName}</td>
+                    <td className="px-4 py-3 text-sm text-slate-800">
+                      {userRole === "STUDENT" ? studentName || report.studentName : report.studentName}
+                    </td>
                     <td className="px-4 py-3 text-sm text-slate-600">{report.status}</td>
                     <td className="px-4 py-3 text-sm text-slate-600 line-clamp-2">{report.notes || "No notes"}</td>
                     <td className="px-4 py-3 text-right text-sm font-medium">

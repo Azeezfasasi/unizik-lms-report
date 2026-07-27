@@ -156,7 +156,7 @@ export default function NewStudentPage() {
     const nextErrors: Record<string, string> = {};
 
     if (!matricNumber.trim()) {
-      nextErrors.matricNumber = "Matric number is required.";
+      nextErrors.matricNumber = "Registration number is required.";
     }
 
     if (!fullName.trim()) {
@@ -202,6 +202,7 @@ export default function NewStudentPage() {
     setSubmitting(true);
     setMessageTone("info");
     setMessage("Creating student...");
+    const emailToNotify = email.trim().toLowerCase();
 
     const response = await fetch("/api/students", {
       method: "POST",
@@ -209,7 +210,7 @@ export default function NewStudentPage() {
       body: JSON.stringify({
         matricNumber: matricNumber.trim(),
         fullName: fullName.trim(),
-        email: email.trim().toLowerCase(),
+        email: emailToNotify,
         facultyId,
         departmentId,
         curriculumId,
@@ -221,9 +222,16 @@ export default function NewStudentPage() {
 
     if (response.ok) {
       setMessageTone("success");
-      setMessage("Student created successfully.");
-      router.push("/dashboard/students");
-      router.refresh();
+      setMessage(
+        `Student created successfully. An activation email has been sent to ${emailToNotify}. Redirecting to students list...`
+      );
+
+      // Give the user a moment to read the confirmation, then navigate
+      setTimeout(() => {
+        router.push("/dashboard/students");
+        router.refresh();
+      }, 3000); // 3 seconds
+
       return;
     }
 
