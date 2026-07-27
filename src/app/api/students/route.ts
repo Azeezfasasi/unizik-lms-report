@@ -57,13 +57,13 @@ export async function POST(request: Request) {
 
       // Send activation/reset link (reuses existing reset flow)
       const token = Buffer.from(`${email}:${Date.now()}`).toString("base64");
-      const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/reset-password/${token}`;
+      const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://unizik-lms-report.vercel.app"}/reset-password/${token}`;
 
       await sendTransactionalEmail({
         to: [{ email, name }],
-        sender: { email: process.env.BREVO_SENDER_EMAIL || "noreply@example.com", name: process.env.BREVO_SENDER_NAME || "UNIZIK Portal" },
-        subject: "Activate your UNIZIK portal account",
-        htmlContent: `<p>Hello ${name},</p><p>An account has been created for you on the UNIZIK portal. Click the link below to set your password and sign in:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you did not expect this, ignore this message.</p>`,
+        sender: { email: process.env.BREVO_SENDER_EMAIL || "noreply@example.com", name: process.env.BREVO_SENDER_NAME || "UNIZIK Reporting Portal" },
+        subject: "Activate your UNIZIK reporting portal account",
+        htmlContent: `<p>Hello ${name},</p><p>An account has been created for you on the UNIZIK reporting portal. Click the link below to set your password and sign in:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you did not expect this, ignore this message.</p>`,
       });
     }
   } catch (err) {

@@ -1,6 +1,14 @@
 import { getUsers } from "@/lib/data/portal";
 import Link from "next/link";
 import UserActions from "./_components/UserActions";
+import { Pagination } from "@/components/shared/Pagination";
+import { UserFilters } from "@/components/users/UserFilters";
+
+const PAGE_SIZE = 5;
+
+type UsersPageProps = {
+  searchParams: Promise<{ q?: string; role?: string; page?: string }>;
+};
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -30,8 +38,27 @@ function roleBadge(role: string) {
   return "bg-slate-100 text-slate-700";
 }
 
-export default async function UsersPage() {
+export default async function UsersPage({ searchParams }: UsersPageProps) {
   const users = await getUsers();
+  const resolvedSearchParams = await searchParams;
+  const query = String((resolvedSearchParams.q ?? "")).trim().toLowerCase();
+  const roleFilter = String((resolvedSearchParams.role ?? "all")).toUpperCase();
+  const pageNumber = Number(resolvedSearchParams.page ?? 1);
+
+  const filteredUsers = users
+    .filter((user) => {
+      const name = (user.name ?? "").toLowerCase();
+      const email = (user.email ?? "").toLowerCase();
+      const matchesQuery = !query || name.includes(query) || email.includes(query);
+      const matchesRole = roleFilter === "ALL" || (user.role ?? "").toUpperCase() === roleFilter;
+      return matchesQuery && matchesRole;
+    })
+    .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+  const totalResults = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(pageNumber, 1), totalPages);
+  const visibleUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -59,8 +86,16 @@ export default async function UsersPage() {
           <p className="text-sm font-medium text-slate-600">No accounts yet</p>
           <p className="mt-1 text-sm text-slate-500">Staff and examiner accounts will appear here once added.</p>
         </div>
+      ) : visibleUsers.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+          <p className="text-sm font-medium text-slate-600">No accounts matched your filters.</p>
+          <p className="mt-1 text-sm text-slate-500">Try a different search term or role filter.</p>
+        </div>
       ) : (
         <>
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <UserFilters />
+          </div>
           {/* Table view — sm and up */}
           <div className="hidden overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm sm:block">
             <div className="overflow-x-auto">
@@ -74,7 +109,7 @@ export default async function UsersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {users.map((user) => (
+                  {visibleUsers.map((user) => (
                     <tr key={user.id} className="transition hover:bg-slate-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -104,7 +139,7 @@ export default async function UsersPage() {
 
           {/* Card view — below sm */}
           <div className="space-y-3 sm:hidden">
-            {users.map((user) => (
+            {visibleUsers.map((user) => (
               <div key={user.id} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-3">
                   <span
@@ -126,6 +161,7 @@ export default async function UsersPage() {
               </div>
             ))}
           </div>
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
         </>
       )}
     </div>
