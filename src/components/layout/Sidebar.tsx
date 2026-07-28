@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { navLinks } from "@/components/layout/navLinks";
 import { useEffect, useState, type ReactNode } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { Summary } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -138,9 +139,7 @@ export function Sidebar() {
       </svg>
     ),
     summary: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-4.5 w-4.5">
-        <path d="M3 6h18M3 12h18M3 18h18" />
-      </svg>
+      <Summary className="w-4 h-4" />
     ),
   };
 
