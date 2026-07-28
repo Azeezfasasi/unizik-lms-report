@@ -17,7 +17,7 @@ export const navLinks: NavLink[] = [
   { href: "/dashboard/reports/approvals", label: "Report Approvals", icon: "archive", roles: ["ADMIN", "PG_COORDINATOR"] },
   { href: "/dashboard/student-reports", label: "Student Reports", icon: "chart", roles: ["ADMIN", "FACULTY_OFFICER", "EXAMINER", "STUDENT"] },
   { href: "/dashboard/reports", label: "Submitted Reports", icon: "archive", roles: ["ADMIN", "FACULTY_OFFICER", "LMS_REP", "PG_COORDINATOR", "DIRECTOR"] },
-  { href: "/dashboard/director", label: "Director Summary", icon: "shield", roles: ["ADMIN", "FACULTY_OFFICER", "PG_COORDINATOR", "DIRECTOR"] },
+  { href: "/dashboard/director", label: "Director Summary", icon: "summary", roles: ["ADMIN", "FACULTY_OFFICER", "PG_COORDINATOR", "DIRECTOR"] },
   { href: "/dashboard/students", label: "Students", icon: "users", roles: ["ADMIN", "FACULTY_OFFICER", "LMS_REP", "PG_COORDINATOR"] },
   { href: "/dashboard/users", label: "Users", icon: "user-circle", roles: ["ADMIN"] },
   { href: "/dashboard/settings/profile", label: "Settings", icon: "cog" },
