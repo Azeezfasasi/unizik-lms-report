@@ -13,7 +13,7 @@ import ExaminerReport from "@/models/ExaminerReport";
 import SupervisorReport from "@/models/SupervisorReport";
 
 type QueryHandle = {
-  populate: (path: string) => QueryHandle;
+  populate: (path: string | Record<string, unknown>) => QueryHandle;
   lean: () => Promise<Record<string, unknown> | null>;
 };
 
