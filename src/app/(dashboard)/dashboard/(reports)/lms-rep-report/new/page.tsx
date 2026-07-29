@@ -1,9 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { PercentageRating } from "@/components/shared/PercentageRating";
+
+interface FacultyOption {
+  _id: string;
+  name: string;
+}
+
+interface DepartmentOption {
+  _id: string;
+  name: string;
+  facultyId: string;
+}
+
+interface CurriculumOption {
+  _id: string;
+  programName: string;
+  departmentId: string;
+}
 
 interface CourseOption {
   _id: string;
@@ -22,8 +39,13 @@ interface LectureOption {
 export default function NewLmsRepReportPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const [faculties, setFaculties] = useState<FacultyOption[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [lectures, setLectures] = useState<LectureOption[]>([]);
+  const [facultyId, setFacultyId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [curriculumId, setCurriculumId] = useState("");
   const [academicSession, setAcademicSession] = useState("");
@@ -33,13 +55,70 @@ export default function NewLmsRepReportPage() {
   const [generalComments, setGeneralComments] = useState("");
   const [issues, setIssues] = useState("");
   const [loading, setLoading] = useState(false);
+  const [optionsLoading, setOptionsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/courses")
-      .then((res) => res.json())
-      .then((data) => setCourses(data))
-      .catch(() => setCourses([]));
+    async function loadOptions() {
+      try {
+        const [facultiesResponse, departmentsResponse, curriculumsResponse, coursesResponse] = await Promise.all([
+          fetch("/api/faculties"),
+          fetch("/api/departments"),
+          fetch("/api/curriculum"),
+          fetch("/api/courses"),
+        ]);
+
+        if (!facultiesResponse.ok || !departmentsResponse.ok || !curriculumsResponse.ok || !coursesResponse.ok) {
+          return;
+        }
+
+        const facultiesData = await facultiesResponse.json();
+        const departmentsData = await departmentsResponse.json();
+        const curriculumsData = await curriculumsResponse.json();
+        const coursesData = await coursesResponse.json();
+
+        setFaculties(facultiesData);
+        setDepartments(departmentsData);
+        setCurriculums(curriculumsData);
+        setCourses(coursesData);
+      } catch {
+        setFaculties([]);
+        setDepartments([]);
+        setCurriculums([]);
+        setCourses([]);
+      } finally {
+        setOptionsLoading(false);
+      }
+    }
+
+    loadOptions();
   }, []);
+
+  const filteredDepartments = useMemo(
+    () => departments.filter((department) => department.facultyId === facultyId),
+    [departments, facultyId]
+  );
+
+  const filteredCourses = useMemo(
+    () =>
+      courses.filter((course) => {
+        const curriculum = curriculums.find((item) => item._id === course.curriculumId);
+        return curriculum?.departmentId === departmentId;
+      }),
+    [courses, curriculums, departmentId]
+  );
+
+  function handleFacultyChange(nextFacultyId: string) {
+    setFacultyId(nextFacultyId);
+    setDepartmentId("");
+    setCourseId("");
+    setCurriculumId("");
+  }
+
+  function handleDepartmentChange(nextDepartmentId: string) {
+    setDepartmentId(nextDepartmentId);
+    setCourseId("");
+    setCurriculumId("");
+  }
 
   function handleCourseChange(nextCourseId: string) {
     setCourseId(nextCourseId);
@@ -101,13 +180,57 @@ export default function NewLmsRepReportPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Faculty
+            <select
+              value={facultyId}
+              onChange={(event) => handleFacultyChange(event.target.value)}
+              required
+              disabled={optionsLoading}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2"
+            >
+              <option value="">Select faculty</option>
+              {faculties.map((faculty) => (
+                <option key={faculty._id} value={faculty._id}>
+                  {faculty.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Department
+            <select
+              value={departmentId}
+              onChange={(event) => handleDepartmentChange(event.target.value)}
+              required
+              disabled={!facultyId || optionsLoading}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2"
+            >
+              <option value="">Select department</option>
+              {filteredDepartments.map((department) => (
+                <option key={department._id} value={department._id}>
+                  {department.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Course
-            <select value={courseId} onChange={(event) => handleCourseChange(event.target.value)} required className="w-full rounded-xl border border-slate-300 px-3 py-2">
+            <select
+              value={courseId}
+              onChange={(event) => handleCourseChange(event.target.value)}
+              required
+              disabled={!departmentId || optionsLoading}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2"
+            >
               <option value="">Select course</option>
-              {courses.map((course) => (
-                <option key={course._id} value={course._id}>{course.title} ({course.code})</option>
+              {filteredCourses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.title} ({course.code})
+                </option>
               ))}
             </select>
           </label>
@@ -133,7 +256,6 @@ export default function NewLmsRepReportPage() {
               className="w-full rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-slate-500"
             />
           </label>
-
         </div>
 
         <div className="mt-6">
