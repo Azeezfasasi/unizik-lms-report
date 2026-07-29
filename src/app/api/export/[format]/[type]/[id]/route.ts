@@ -78,11 +78,41 @@ export async function GET(
     }
 
     let query: QueryHandle = model.findById(id);
-    for (const path of POPULATE_MAP[type] ?? []) query = query.populate(path);
+    if (type === "lms-rep") {
+      query = query
+        .populate({
+          path: "courseId",
+          populate: {
+            path: "curriculumId",
+            populate: {
+              path: "departmentId",
+              populate: {
+                path: "facultyId",
+              },
+            },
+          },
+        })
+        .populate("submittedBy")
+        .populate("lectureCompliance.lectureScheduleId");
+    } else {
+      for (const path of POPULATE_MAP[type] ?? []) query = query.populate(path);
+    }
+
     report = await query.lean();
 
     if (!report) {
       return NextResponse.json({ message: "Report not found" }, { status: 404 });
+    }
+
+    if (type === "lms-rep" && report && typeof report === "object") {
+      const reportObj = report as Record<string, unknown>;
+      const courseId = reportObj.courseId as Record<string, unknown> | undefined;
+      const curriculumId = courseId?.curriculumId as Record<string, unknown> | undefined;
+      const departmentId = curriculumId?.departmentId as Record<string, unknown> | undefined;
+      const facultyId = departmentId?.facultyId as Record<string, unknown> | undefined;
+
+      (reportObj as Record<string, unknown>).departmentId = departmentId;
+      (reportObj as Record<string, unknown>).facultyId = facultyId;
     }
   }
 

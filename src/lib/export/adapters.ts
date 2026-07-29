@@ -130,7 +130,9 @@ export function adaptCourseRepReport(report: ReportLike): ReportExportPayload {
     title: "LMS Course Rep Report",
     subtitle: `${report.courseId?.title ?? "Course"} (${report.courseId?.code ?? ""})`,
     meta: [
-      { label: "Submitted By", value: report.submittedBy?.name ?? "-" },
+      { label: "Course", value: `${report.courseId?.title ?? "-"} (${report.courseId?.code ?? "-"})` },
+      { label: "Faculty", value: report.facultyId?.name ?? "-" },
+      { label: "Department", value: report.departmentId?.name ?? "-" },
       { label: "Academic Session", value: report.academicSession ?? "-" },
       { label: "Semester", value: report.semester === "FIRST" ? "First" : "Second" },
       { label: "Status", value: report.status ?? "-" },
