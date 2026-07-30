@@ -23,7 +23,7 @@ interface CurriculumOption {
   programName: string;
 }
 
-const RATINGS = [1, 2, 3, 4, 5];
+const RATINGS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
 export default function NewStudentReportPage() {
   const router = useRouter();
@@ -41,9 +41,9 @@ export default function NewStudentReportPage() {
     ? session?.user?.name ?? selectedStudent?.fullName ?? ""
     : selectedStudent ? `${selectedStudent.fullName} - ${selectedStudent.matricNumber}` : "";
   const [studentMatchCount, setStudentMatchCount] = useState<number>(0);
-  const [teachingQuality, setTeachingQuality] = useState(3);
-  const [examPreparedness, setExamPreparedness] = useState(3);
-  const [courseMaterialsRating, setCourseMaterialsRating] = useState(3);
+  const [teachingQuality, setTeachingQuality] = useState(60);
+  const [examPreparedness, setExamPreparedness] = useState(60);
+  const [courseMaterialsRating, setCourseMaterialsRating] = useState(60);
   const [lectureFeedback, setLectureFeedback] = useState("");
   const [examFeedback, setExamFeedback] = useState("");
   const [instructorFeedback, setInstructorFeedback] = useState("");

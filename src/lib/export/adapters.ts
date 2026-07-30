@@ -237,6 +237,22 @@ export function adaptCoordinatorReport(report: ReportLike): ReportExportPayload 
   };
 }
 
+function formatPercentageRating(value?: number): string {
+  if (typeof value !== "number") {
+    return "-";
+  }
+
+  if (value > 0 && value <= 5) {
+    return `${Math.round(value * 20)}%`;
+  }
+
+  if (value >= 0 && value <= 100) {
+    return `${Math.round(value)}%`;
+  }
+
+  return "-";
+}
+
 export function adaptStudentReport(report: ReportLike): ReportExportPayload {
   return {
     title: "Student Report",
@@ -251,9 +267,9 @@ export function adaptStudentReport(report: ReportLike): ReportExportPayload {
       {
         heading: "Feedback Ratings",
         rows: [
-          { label: "Teaching Quality", value: String(report.teachingQuality ?? "-") },
-          { label: "Exam Preparedness", value: String(report.examPreparedness ?? "-") },
-          { label: "Course Materials", value: String(report.courseMaterialsRating ?? "-") },
+          { label: "Teaching Quality", value: formatPercentageRating(report.teachingQuality) },
+          { label: "Exam Preparedness", value: formatPercentageRating(report.examPreparedness) },
+          { label: "Course Materials", value: formatPercentageRating(report.courseMaterialsRating) },
         ],
       },
       {
