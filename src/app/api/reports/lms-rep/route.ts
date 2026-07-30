@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connectDB";
 import CourseRepReport from "@/models/CourseRepReport";
 import LectureSchedule from "@/models/LectureSchedule";
+import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 
 export async function GET(req: NextRequest) {
   await connectDB();
@@ -31,6 +32,8 @@ export async function POST(req: NextRequest) {
     totalLecturesScheduled: schedules.length,
     lectureCompliance: schedules.map((schedule: { _id: string }) => ({ lectureScheduleId: schedule._id, held: false, remarks: "" })),
   });
+
+  notifyReportEvent("lms-rep", report._id.toString(), "created").catch(() => {});
 
   return NextResponse.json(report, { status: 201 });
 }

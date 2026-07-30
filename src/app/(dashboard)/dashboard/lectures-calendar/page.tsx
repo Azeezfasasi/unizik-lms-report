@@ -21,6 +21,7 @@ interface LectureScheduleItem {
   startDate: string;
   endDate: string;
   description?: string;
+  status?: "not_started" | "commenced";
 }
 
 export default function LecturesCalendarPage() {
@@ -32,6 +33,7 @@ export default function LecturesCalendarPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<"not_started" | "commenced">("not_started");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [schedules, setSchedules] = useState<LectureScheduleItem[]>([]);
@@ -42,6 +44,7 @@ export default function LecturesCalendarPage() {
   const [editStartDate, setEditStartDate] = useState("");
   const [editEndDate, setEditEndDate] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editStatus, setEditStatus] = useState<"not_started" | "commenced">("not_started");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
@@ -99,6 +102,7 @@ export default function LecturesCalendarPage() {
     setStartDate("");
     setEndDate("");
     setDescription("");
+    setStatus("not_started");
   }
 
   function closeCreateModal() {
@@ -130,6 +134,7 @@ export default function LecturesCalendarPage() {
       startDate,
       endDate,
       description,
+      status,
     };
 
     const response = await fetch("/api/lectures-calendar", {
@@ -164,6 +169,7 @@ export default function LecturesCalendarPage() {
       startDate: editStartDate,
       endDate: editEndDate,
       description: editDescription,
+      status: editStatus,
     };
 
     const response = await fetch(`/api/lectures-calendar/${editingSchedule._id}`, {
@@ -218,6 +224,7 @@ export default function LecturesCalendarPage() {
     setEditStartDate(schedule.startDate.slice(0, 10));
     setEditEndDate(schedule.endDate.slice(0, 10));
     setEditDescription(schedule.description ?? "");
+    setEditStatus(schedule.status ?? "not_started");
   }
 
   function cancelEdit() {
@@ -227,6 +234,7 @@ export default function LecturesCalendarPage() {
     setEditStartDate("");
     setEditEndDate("");
     setEditDescription("");
+    setEditStatus("not_started");
   }
 
   function getCurriculumTitle(id?: string | { _id?: string; programName?: string }) {
@@ -243,6 +251,13 @@ export default function LecturesCalendarPage() {
       return id.title ?? "Unknown course";
     }
     return courses.find((course) => course._id === id)?.title ?? "Unknown course";
+  }
+
+  function hasCommenced(schedule: LectureScheduleItem) {
+    if (schedule.status) {
+      return schedule.status === "commenced";
+    }
+    return new Date() >= new Date(schedule.startDate);
   }
 
   return (
@@ -347,6 +362,18 @@ export default function LecturesCalendarPage() {
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               />
             </label>
+
+            <label className="space-y-2 text-sm font-medium text-slate-700">
+              Lecture status
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value as "not_started" | "commenced")}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              >
+                <option value="not_started">Not started yet</option>
+                <option value="commenced">Commenced</option>
+              </select>
+            </label>
           </div>
 
           <label className="block space-y-2 text-sm font-medium text-slate-700">
@@ -431,6 +458,18 @@ export default function LecturesCalendarPage() {
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               />
             </label>
+
+            <label className="space-y-2 text-sm font-medium text-slate-700">
+              Lecture status
+              <select
+                value={editStatus}
+                onChange={(event) => setEditStatus(event.target.value as "not_started" | "commenced")}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              >
+                <option value="not_started">Not started yet</option>
+                <option value="commenced">Commenced</option>
+              </select>
+            </label>
           </div>
 
           <label className="block space-y-2 text-sm font-medium text-slate-700">
@@ -500,6 +539,17 @@ export default function LecturesCalendarPage() {
                   <p className="mt-3 text-sm text-slate-600">{schedule.description}</p>
                 ) : null}
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled
+                    className={
+                      hasCommenced(schedule)
+                        ? "cursor-default rounded-full border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700"
+                        : "cursor-default rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700"
+                    }
+                  >
+                    {hasCommenced(schedule) ? "Commenced" : "Not started yet"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => startEdit(schedule)}

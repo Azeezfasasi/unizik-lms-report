@@ -75,6 +75,15 @@ type ReportLike = {
   studentResponseToAssignmentsPct?: number;
   studentResponseToQuizPct?: number;
   studentResponseToCourseworkPct?: number;
+  weeklyEntries?: Array<{
+    weekId?: { weekNumber?: number; label?: string };
+    lecturerEffectivenessRating?: number;
+    studentEffectivenessRating?: number;
+    remarks?: string;
+  }>;
+  avgLecturerEffectiveness?: number;
+  avgStudentEffectiveness?: number;
+  generalComments?: string;
 };
 
 export function adaptExaminerReport(report: ReportLike): ReportExportPayload {
@@ -237,6 +246,47 @@ export function adaptCoordinatorReport(report: ReportLike): ReportExportPayload 
   };
 }
 
+export function adaptWeeklyEffectivenessReport(report: ReportLike): ReportExportPayload {
+  return {
+    title: "Weekly Effectiveness Report",
+    subtitle: `${report.courseId?.title ?? "Course"} (${report.courseId?.code ?? ""}) · ${report.curriculumId?.programName ?? "Programme"}`,
+    meta: [
+      { label: "Course", value: `${report.courseId?.title ?? "-"} (${report.courseId?.code ?? "-"})` },
+      { label: "Prepared By", value: report.preparedBy?.name ?? "-" },
+      { label: "Academic Session", value: report.academicSession ?? "-" },
+      { label: "Semester", value: report.semester === "FIRST" ? "First" : "Second" },
+      { label: "Status", value: report.status ?? "-" },
+    ],
+    sections: [
+      {
+        heading: "Effectiveness Summary",
+        rows: [
+          { label: "Avg. Lecturer Effectiveness", value: `${report.avgLecturerEffectiveness ?? 0}%` },
+          { label: "Avg. Student Effectiveness", value: `${report.avgStudentEffectiveness ?? 0}%` },
+        ],
+      },
+      {
+        heading: "Weekly Breakdown",
+        rows: [],
+        table: {
+          headers: ["Week", "Lecturer Effectiveness", "Student Effectiveness", "Remarks"],
+          rows: (report.weeklyEntries ?? []).map((entry) => [
+            entry.weekId?.weekNumber ? `Week ${entry.weekId.weekNumber}${entry.weekId.label ? ` — ${entry.weekId.label}` : ""}` : "-",
+            `${entry.lecturerEffectivenessRating ?? 0}%`,
+            `${entry.studentEffectivenessRating ?? 0}%`,
+            entry.remarks ?? "",
+          ]),
+        },
+      },
+      {
+        heading: "General Comments",
+        rows: [{ label: "Comments", value: report.generalComments || "None" }],
+      },
+    ],
+    generatedAt: new Date(),
+  };
+}
+
 function formatPercentageRating(value?: number): string {
   if (typeof value !== "number") {
     return "-";
@@ -354,16 +404,20 @@ type ExportAdapterMap = {
   PG_COORDINATOR: (report: ReportLike) => ReportExportPayload;
   EXAMINER: (report: ReportLike) => ReportExportPayload;
   SUPERVISOR: (report: ReportLike) => ReportExportPayload;
+  WEEKLY_EFFECTIVENESS: (report: ReportLike) => ReportExportPayload;
   DIRECTOR: (report: Record<string, unknown>) => ReportExportPayload;
 };
 
-export function getAdapter(type: "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER" | "SUPERVISOR" | "DIRECTOR") {
+export function getAdapter(
+  type: "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "EXAMINER" | "SUPERVISOR" | "WEEKLY_EFFECTIVENESS" | "DIRECTOR"
+) {
   const map: ExportAdapterMap = {
     STUDENT: adaptStudentReport,
     LMS_REP: adaptCourseRepReport,
     PG_COORDINATOR: adaptCoordinatorReport,
     EXAMINER: adaptExaminerReport,
     SUPERVISOR: adaptSupervisorReport,
+    WEEKLY_EFFECTIVENESS: adaptWeeklyEffectivenessReport,
     DIRECTOR: adaptDirectorReport,
   };
   return map[type];

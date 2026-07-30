@@ -8,6 +8,7 @@ const LectureScheduleSchema = new Schema(
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     description: { type: String },
+    status: { type: String, enum: ["not_started", "commenced"], default: "not_started" },
   },
   { timestamps: true }
 );

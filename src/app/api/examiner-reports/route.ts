@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import ExaminerReport from "@/models/ExaminerReport";
+import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 
 const REQUIRED_FIELDS = [
   "facultyId",
@@ -65,6 +66,8 @@ export async function POST(request: Request) {
       },
     ],
   });
+
+  notifyReportEvent("examiner", report._id.toString(), "created").catch(() => {});
 
   return NextResponse.json(report, { status: 201 });
 }

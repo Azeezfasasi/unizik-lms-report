@@ -10,7 +10,7 @@ export function ExportButtons({
   type,
   id,
 }: {
-  type: "student" | "lms-rep" | "coordinator" | "examiner" | "supervisor";
+  type: "student" | "lms-rep" | "coordinator" | "examiner" | "supervisor" | "weekly-effectiveness";
   id: string;
 }) {
   return (

@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import StudentReport from "@/models/StudentReport";
 import Student from "@/models/Student";
+import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 
 export async function GET(request: Request) {
   await connectDB();
@@ -44,5 +45,6 @@ export async function POST(request: Request) {
   }
 
   const report = await StudentReport.create(reportPayload);
+  notifyReportEvent("student", report._id.toString(), "created").catch(() => {});
   return NextResponse.json(report, { status: 201 });
 }

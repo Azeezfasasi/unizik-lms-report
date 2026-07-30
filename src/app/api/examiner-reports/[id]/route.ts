@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import ExaminerReport from "@/models/ExaminerReport";
+import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 
 const SUBMITTED_OR_LATER = ["SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED", "APPROVED", "REJECTED"];
 
@@ -60,6 +61,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .populate("lecturerId", "name email")
     .populate("moderatorId", "name email")
     .lean();
+
+  if (statusChanged && nextStatus === "SUBMITTED") {
+    notifyReportEvent("examiner", id, "submitted").catch(() => {});
+  }
 
   return NextResponse.json(report);
 }

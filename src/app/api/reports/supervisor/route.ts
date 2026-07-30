@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import SupervisorReport from "@/models/SupervisorReport";
+import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 
 export async function GET(request: NextRequest) {
   await connectDB();
@@ -44,6 +45,8 @@ export async function POST(request: NextRequest) {
     status: body.status || "DRAFT",
     submittedAt: body.status === "SUBMITTED" ? new Date() : undefined,
   });
+
+  notifyReportEvent("supervisor", report._id.toString(), "created").catch(() => {});
 
   return NextResponse.json(report, { status: 201 });
 }

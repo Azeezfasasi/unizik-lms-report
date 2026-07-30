@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connectDB";
 import CoordinatorReport from "@/models/CoordinatorReport";
+import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 
 export async function GET(req: NextRequest) {
   await connectDB();
@@ -23,5 +24,6 @@ export async function POST(req: NextRequest) {
   await connectDB();
   const body = await req.json();
   const report = await CoordinatorReport.create(body);
+  notifyReportEvent("coordinator", report._id.toString(), "created").catch(() => {});
   return NextResponse.json(report, { status: 201 });
 }
