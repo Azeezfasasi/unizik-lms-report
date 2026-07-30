@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 import { getCurriculumsWithDepartment } from "@/lib/data/portal";
