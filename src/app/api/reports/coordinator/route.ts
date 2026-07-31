@@ -23,6 +23,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   await connectDB();
   const body = await req.json();
+
+  if (!body.weekId) {
+    return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
+  }
+
   const report = await CoordinatorReport.create(body);
   notifyReportEvent("coordinator", report._id.toString(), "created").catch(() => {});
   return NextResponse.json(report, { status: 201 });

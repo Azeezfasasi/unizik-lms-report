@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { PercentageRating } from "@/components/shared/PercentageRating";
+import { AcademicWeekGate } from "@/components/shared/AcademicWeekGate";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface FacultyOption {
   _id: string;
@@ -50,12 +52,14 @@ export default function NewLmsRepReportPage() {
   const [curriculumId, setCurriculumId] = useState("");
   const [academicSession, setAcademicSession] = useState("");
   const [semester, setSemester] = useState("FIRST");
+  const [weekId, setWeekId] = useState("");
   const [portalReadiness, setPortalReadiness] = useState("PARTIALLY_READY");
   const [lecturerTrainingRating, setLecturerTrainingRating] = useState(60);
   const [generalComments, setGeneralComments] = useState("");
   const [issues, setIssues] = useState("");
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     async function loadOptions() {
@@ -144,11 +148,19 @@ export default function NewLmsRepReportPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    setMessage("");
+
+    if (!weekId) {
+      setMessage("Select or create an academic week before submitting this report.");
+      return;
+    }
+
     setLoading(true);
 
     const payload = {
       courseId,
       curriculumId,
+      weekId,
       submittedBy: session?.user?.id,
       academicSession,
       semester,
@@ -167,8 +179,11 @@ export default function NewLmsRepReportPage() {
     if (response.ok) {
       const report = await response.json();
       router.push(`/dashboard/lms-rep-report/${report._id}`);
+      return;
     }
 
+    const result = await response.json().catch(() => ({}));
+    setMessage(result.message || "Unable to save the LMS rep report.");
     setLoading(false);
   }
 
@@ -237,7 +252,7 @@ export default function NewLmsRepReportPage() {
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Academic Session
-            <input value={academicSession} onChange={(event) => setAcademicSession(event.target.value)} required className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="2025/2026" />
+            <AcademicSessionSelect value={academicSession} onChange={setAcademicSession} autoSelectCurrent className="w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -259,46 +274,63 @@ export default function NewLmsRepReportPage() {
         </div>
 
         <div className="mt-6">
-          <h3 className="text-sm font-semibold text-slate-900">Lecture schedule overview</h3>
-          <div className="mt-3 space-y-2">
-            {lectures.length === 0 ? (
-              <p className="text-sm text-slate-500">Select a course to load its lectures.</p>
-            ) : (
-              lectures.map((lecture) => (
-                <div key={lecture._id} className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">
-                  <div className="font-medium">{lecture.title}</div>
-                  <div className="mt-1 text-xs text-slate-500">{new Date(lecture.startDate).toLocaleDateString()} - {new Date(lecture.endDate).toLocaleDateString()}</div>
-                </div>
-              ))
-            )}
-          </div>
+          <AcademicWeekGate
+            curriculumId={curriculumId}
+            courseId={courseId}
+            academicSession={academicSession}
+            semester={semester}
+            weekId={weekId}
+            onWeekChange={setWeekId}
+          />
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <label className="space-y-2 text-sm font-medium text-slate-700">
-            Portal readiness for quizzes & exams
-            <select value={portalReadiness} onChange={(event) => setPortalReadiness(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2">
-              <option value="NOT_READY">Not ready</option>
-              <option value="PARTIALLY_READY">Partially ready</option>
-              <option value="READY">Ready</option>
-            </select>
-          </label>
-          <PercentageRating label="Lecturer training effectiveness" value={lecturerTrainingRating} onChange={setLecturerTrainingRating} />
-        </div>
+        {weekId ? (
+          <>
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-slate-900">Lecture schedule overview</h3>
+              <div className="mt-3 space-y-2">
+                {lectures.length === 0 ? (
+                  <p className="text-sm text-slate-500">Select a course to load its lectures.</p>
+                ) : (
+                  lectures.map((lecture) => (
+                    <div key={lecture._id} className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">
+                      <div className="font-medium">{lecture.title}</div>
+                      <div className="mt-1 text-xs text-slate-500">{new Date(lecture.startDate).toLocaleDateString()} - {new Date(lecture.endDate).toLocaleDateString()}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
 
-        <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
-          General comments
-          <textarea value={generalComments} onChange={(event) => setGeneralComments(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="Use this field to summarize readiness and training notes." />
-        </label>
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <label className="space-y-2 text-sm font-medium text-slate-700">
+                Portal readiness for quizzes & exams
+                <select value={portalReadiness} onChange={(event) => setPortalReadiness(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2">
+                  <option value="NOT_READY">Not ready</option>
+                  <option value="PARTIALLY_READY">Partially ready</option>
+                  <option value="READY">Ready</option>
+                </select>
+              </label>
+              <PercentageRating label="Lecturer training effectiveness" value={lecturerTrainingRating} onChange={setLecturerTrainingRating} />
+            </div>
 
-        <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
-          Issues / remarks
-          <textarea value={issues} onChange={(event) => setIssues(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
-        </label>
+            <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
+              General comments
+              <textarea value={generalComments} onChange={(event) => setGeneralComments(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="Use this field to summarize readiness and training notes." />
+            </label>
+
+            <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
+              Issues / remarks
+              <textarea value={issues} onChange={(event) => setIssues(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
+            </label>
+          </>
+        ) : null}
+
+        {message ? <p className="mt-6 text-sm text-rose-600">{message}</p> : null}
 
         <div className="mt-6 flex justify-end">
-          <button type="submit" disabled={loading} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-            {loading ? "Creating..." : "Create report"}
+          <button type="submit" disabled={loading || !weekId} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">
+            {loading ? "Submitting..." : "Submit report"}
           </button>
         </div>
       </form>

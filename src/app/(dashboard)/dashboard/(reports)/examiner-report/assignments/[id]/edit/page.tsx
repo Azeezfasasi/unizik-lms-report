@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface FacultyOption { id: string; name: string; }
 interface DepartmentOption { id: string; name: string; facultyId: string; }
@@ -290,12 +291,7 @@ export default function EditTeachingAssignmentPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">Academic session</label>
-            <input
-              value={academicSession}
-              onChange={(event) => setAcademicSession(event.target.value)}
-              className={inputClass}
-              placeholder="2025/2026"
-            />
+            <AcademicSessionSelect value={academicSession} onChange={setAcademicSession} className={inputClass} />
           </div>
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">Semester</label>

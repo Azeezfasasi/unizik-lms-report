@@ -4,6 +4,7 @@ import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PercentageRating } from "@/components/shared/PercentageRating";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 import { CircleArrowLeft } from "lucide-react";
 
 interface CourseOption {
@@ -138,7 +139,7 @@ export default function EditLmsRepReportPage({ params }: { params: Promise<{ id:
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Academic session
-            <input value={academicSession} onChange={(event) => setAcademicSession(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2" required />
+            <AcademicSessionSelect value={academicSession} onChange={setAcademicSession} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">

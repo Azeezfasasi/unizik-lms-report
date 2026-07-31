@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/db/connectDB";
+import AcademicSession from "@/models/AcademicSession";
 import Course from "@/models/Course";
 import CourseRepReport from "@/models/CourseRepReport";
 import CoordinatorReport from "@/models/CoordinatorReport";
@@ -527,6 +528,20 @@ export async function getDepartmentsByFacultyId(facultyId: string): Promise<Depa
     await connectDB();
     const departments = await Department.find({ facultyId }).lean();
     return departments.map((department: DocumentWithOptionalId) => ({ ...department, id: toObjectIdString(department._id) })) as DepartmentItem[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getAcademicSessions(): Promise<{ id: string; name: string; isCurrent: boolean }[]> {
+  try {
+    await connectDB();
+    const sessions = await AcademicSession.find({}).sort({ name: -1 }).lean();
+    return sessions.map((session: DocumentWithOptionalId & { name: string; isCurrent?: boolean }) => ({
+      id: toObjectIdString(session._id),
+      name: session.name,
+      isCurrent: Boolean(session.isCurrent),
+    }));
   } catch {
     return [];
   }

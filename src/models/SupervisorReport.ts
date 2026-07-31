@@ -4,6 +4,8 @@ const SupervisorReportSchema = new Schema(
   {
     facultyId: { type: Schema.Types.ObjectId, ref: "Faculty", required: true },
     departmentId: { type: Schema.Types.ObjectId, ref: "Department", required: true },
+    curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum", required: true },
+    weekId: { type: Schema.Types.ObjectId, ref: "AcademicWeek", required: true },
     submittedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     academicSession: { type: String, required: true },
     semester: { type: String, enum: ["FIRST", "SECOND"], required: true },

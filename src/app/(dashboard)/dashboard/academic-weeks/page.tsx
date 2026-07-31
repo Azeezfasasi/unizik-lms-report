@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/shared/Modal";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface CurriculumOption {
   _id: string;
@@ -132,7 +133,7 @@ export default function AcademicWeeksPage() {
 
     if (!academicSession) {
       setLoading(false);
-      setMessage("Enter an academic session before saving the week.");
+      setMessage("Select an academic session before saving the week.");
       return;
     }
 
@@ -327,10 +328,10 @@ export default function AcademicWeeksPage() {
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Academic session
-            <input
+            <AcademicSessionSelect
               value={academicSession}
-              onChange={(event) => setAcademicSession(event.target.value)}
-              placeholder="2025/2026"
+              onChange={setAcademicSession}
+              required={false}
               className="w-full rounded-xl border border-slate-300 px-3 py-2 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
           </label>
@@ -392,11 +393,10 @@ export default function AcademicWeeksPage() {
 
             <label className="space-y-2 text-sm font-medium text-slate-700">
               Academic session
-              <input
+              <AcademicSessionSelect
                 value={academicSession}
-                onChange={(event) => setAcademicSession(event.target.value)}
-                required
-                placeholder="2025/2026"
+                onChange={setAcademicSession}
+                autoSelectCurrent
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               />
             </label>

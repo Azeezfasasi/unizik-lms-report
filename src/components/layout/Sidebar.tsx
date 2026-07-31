@@ -39,6 +39,10 @@ export function Sidebar() {
     "/dashboard/users": "Administration",
     "/dashboard/settings/profile": "General",
     "/dashboard/supervisor-report": "Reporting",
+    "/dashboard/academic-sessions": "Academics",
+    "/dashboard/academic-weeks": "Academics",
+    "/dashboard/director": "Reporting",
+    "/dashboard/weekly-effectiveness-report": "Reporting",
   };
 
   useEffect(() => {
@@ -167,7 +171,7 @@ export function Sidebar() {
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-68 transform flex-col border-r border-slate-800/60 bg-slate-950 transition-transform duration-200 ease-out md:static md:translate-x-0 h-screen overflow-y-auto ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-68 transform flex-col border-r border-slate-800/60 bg-slate-950 transition-transform duration-200 ease-out md:static md:translate-x-0 h-screen ${
           open ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
@@ -204,7 +208,7 @@ export function Sidebar() {
         ) : null}
 
         {/* Nav — scrolls independently so it never collides with the footer */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3.5 space-y-5 
+        <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3.5 space-y-5
            scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
           {Object.entries(grouped).map(([section, links]) => (
             <div key={section}>
@@ -214,7 +218,8 @@ export function Sidebar() {
               <div className="space-y-0.5">
                 {links.map((link) => {
                   const isActive =
-                    pathname === link.href || (pathname.startsWith(link.href) && link.href !== "/");
+                    pathname === link.href ||
+                    (link.href !== "/" && link.href !== "/dashboard" && pathname.startsWith(`${link.href}/`));
                   return (
                     <Link
                       key={link.href}

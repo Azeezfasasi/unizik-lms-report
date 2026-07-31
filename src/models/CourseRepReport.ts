@@ -13,6 +13,7 @@ const CourseRepReportSchema = new Schema(
   {
     courseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
     curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum", required: true },
+    weekId: { type: Schema.Types.ObjectId, ref: "AcademicWeek", required: true },
     submittedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     academicSession: { type: String, required: true },
     semester: { type: String, enum: ["FIRST", "SECOND"], required: true },

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface FacultyOption {
   id: string;
@@ -31,14 +32,6 @@ interface LecturerOption {
 
 const SEMESTERS = ["FIRST", "SECOND"] as const;
 const EXAM_TYPES = ["CA", "EXAM", "MAKEUP", "RESIT"] as const;
-
-function defaultAcademicSession() {
-  const now = new Date();
-  const year = now.getFullYear();
-  // Academic sessions typically start around September/October.
-  const startYear = now.getMonth() >= 8 ? year : year - 1;
-  return `${startYear}/${startYear + 1}`;
-}
 
 function scoreBand(numericScore: number) {
   if (Number.isNaN(numericScore)) {
@@ -94,7 +87,7 @@ export default function NewExaminerReportPage() {
   const [facultyId, setFacultyId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [courseId, setCourseId] = useState("");
-  const [academicSession, setAcademicSession] = useState(defaultAcademicSession);
+  const [academicSession, setAcademicSession] = useState("");
   const [semester, setSemester] = useState<(typeof SEMESTERS)[number]>("FIRST");
   const [examType, setExamType] = useState<(typeof EXAM_TYPES)[number]>("EXAM");
   const [questionPaperUrl, setQuestionPaperUrl] = useState("");
@@ -249,7 +242,7 @@ export default function NewExaminerReportPage() {
     const defaultDepartmentId = departments.filter((department) => department.facultyId === faculties[0]?.id)[0]?.id ?? "";
     setDepartmentId(defaultDepartmentId);
     setCourseId(courses.filter((course) => course.departmentId === defaultDepartmentId)[0]?.id ?? "");
-    setAcademicSession(defaultAcademicSession());
+    setAcademicSession("");
     setSemester("FIRST");
     setExamType("EXAM");
     setQuestionPaperUrl("");
@@ -510,15 +503,18 @@ export default function NewExaminerReportPage() {
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">Academic session</label>
-                  <input
-                    value={academicSession}
-                    onChange={(event) => {
-                      setAcademicSession(event.target.value);
-                      setErrors((current) => ({ ...current, academicSession: "" }));
-                    }}
-                    className={`${baseInput} ${errors.academicSession ? errInput : okInput}`}
-                    placeholder="2025/2026"
-                  />
+                  <div className="relative">
+                    <AcademicSessionSelect
+                      value={academicSession}
+                      onChange={(value) => {
+                        setAcademicSession(value);
+                        setErrors((current) => ({ ...current, academicSession: "" }));
+                      }}
+                      autoSelectCurrent
+                      className={`${baseInput} ${errors.academicSession ? errInput : okInput} appearance-none pr-10`}
+                    />
+                    <SelectChevron />
+                  </div>
                   <FieldError message={errors.academicSession} />
                 </div>
 
@@ -744,7 +740,7 @@ export default function NewExaminerReportPage() {
                     Saving report...
                   </>
                 ) : (
-                  "Save report"
+                  "Submit report"
                 )}
               </button>
             </div>

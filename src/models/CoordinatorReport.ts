@@ -3,6 +3,7 @@ import { Schema, model, models } from "mongoose";
 const CoordinatorReportSchema = new Schema(
   {
     curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum", required: true },
+    weekId: { type: Schema.Types.ObjectId, ref: "AcademicWeek", required: true },
     preparedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     departmentId: { type: Schema.Types.ObjectId, ref: "Department" },
     academicSession: { type: String, required: true },

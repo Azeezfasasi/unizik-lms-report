@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface FacultyOption {
   id: string;
@@ -31,20 +32,13 @@ interface LecturerOption {
 
 const SEMESTERS = ["FIRST", "SECOND"] as const;
 
-function defaultAcademicSession() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const startYear = now.getMonth() >= 8 ? year : year - 1;
-  return `${startYear}/${startYear + 1}`;
-}
-
 export default function NewTeachingAssignmentPage() {
   const router = useRouter();
   const [lecturerId, setLecturerId] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [courseId, setCourseId] = useState("");
-  const [academicSession, setAcademicSession] = useState(defaultAcademicSession);
+  const [academicSession, setAcademicSession] = useState("");
   const [semester, setSemester] = useState<(typeof SEMESTERS)[number]>("FIRST");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -291,11 +285,11 @@ export default function NewTeachingAssignmentPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">Academic session</label>
-            <input
+            <AcademicSessionSelect
               value={academicSession}
-              onChange={(event) => setAcademicSession(event.target.value)}
+              onChange={setAcademicSession}
+              autoSelectCurrent
               className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm"
-              placeholder="2025/2026"
             />
           </div>
           <div>

@@ -74,6 +74,11 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ r
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-600">Notes</p>
         <p className="mt-3 text-sm leading-7 text-slate-700">{report.notes || "No notes available."}</p>
       </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-600">LMS Portal Feedback</p>
+        <p className="mt-3 text-sm leading-7 text-slate-700">{typeof report.lmsPortalFeedback === "string" && report.lmsPortalFeedback ? report.lmsPortalFeedback : "No LMS portal feedback available."}</p>
+      </div>
     </div>
   );
 }

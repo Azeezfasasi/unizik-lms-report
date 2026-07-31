@@ -71,6 +71,7 @@ type ReportLike = {
   lectureFeedback?: string;
   examFeedback?: string;
   instructorFeedback?: string;
+  lmsPortalFeedback?: string;
   studentResponseToLecturesPct?: number;
   studentResponseToAssignmentsPct?: number;
   studentResponseToQuizPct?: number;
@@ -328,6 +329,7 @@ export function adaptStudentReport(report: ReportLike): ReportExportPayload {
           { label: "Lecture Feedback", value: report.lectureFeedback || "None" },
           { label: "Exam Feedback", value: report.examFeedback || "None" },
           { label: "Instructor Feedback", value: report.instructorFeedback || "None" },
+          { label: "LMS Portal Feedback", value: report.lmsPortalFeedback || "None" },
         ],
       },
       {

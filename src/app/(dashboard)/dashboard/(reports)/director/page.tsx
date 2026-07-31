@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { getDirectorSummary } from "@/lib/data/portal";
+import { getDirectorSummary, getAcademicSessions } from "@/lib/data/portal";
 import { DirectorEmailForm } from "@/components/reports/DirectorEmailForm";
 
 const ALLOWED_ROLES = ["ADMIN", "FACULTY_OFFICER", "PG_COORDINATOR", "DIRECTOR"];
@@ -26,7 +26,9 @@ export default async function DirectorSummaryPage({
     redirect("/dashboard");
   }
 
-  const academicSession = resolvedSearchParams.academicSession || defaultAcademicSession();
+  const academicSessions = await getAcademicSessions();
+  const currentAcademicSession = academicSessions.find((item) => item.isCurrent)?.name ?? defaultAcademicSession();
+  const academicSession = resolvedSearchParams.academicSession || currentAcademicSession;
   const semester = resolvedSearchParams.semester === "FIRST" || resolvedSearchParams.semester === "SECOND" ? resolvedSearchParams.semester : undefined;
   const summary = await getDirectorSummary(academicSession, semester);
 
@@ -53,13 +55,15 @@ export default async function DirectorSummaryPage({
       <form method="GET" className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-slate-600">Academic session</label>
-          <input
-            type="text"
-            name="academicSession"
-            defaultValue={academicSession}
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-            placeholder="2025/2026"
-          />
+          <select name="academicSession" defaultValue={academicSession} className="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+            {academicSessions.length === 0 ? <option value={academicSession}>{academicSession}</option> : null}
+            {academicSessions.map((item) => (
+              <option key={item.id} value={item.name}>
+                {item.name}
+                {item.isCurrent ? " (Current)" : ""}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-slate-600">Semester</label>

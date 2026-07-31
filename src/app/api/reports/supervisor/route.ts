@@ -39,6 +39,15 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
+
+  if (!body.curriculumId) {
+    return NextResponse.json({ message: "Select a curriculum before submitting this report." }, { status: 400 });
+  }
+
+  if (!body.weekId) {
+    return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
+  }
+
   const report = await SupervisorReport.create({
     ...body,
     submittedBy: session.user.id,

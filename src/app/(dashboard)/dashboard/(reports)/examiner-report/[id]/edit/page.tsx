@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface FacultyOption { id: string; name: string; }
 interface DepartmentOption { id: string; name: string; facultyId: string; }
@@ -468,15 +469,17 @@ export default function EditExaminerReportPage() {
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">Academic session</label>
-                  <input
-                    value={academicSession}
-                    onChange={(event) => {
-                      setAcademicSession(event.target.value);
-                      setErrors((prev) => ({ ...prev, academicSession: "" }));
-                    }}
-                    className={`${baseInput} ${errors.academicSession ? errInput : okInput}`}
-                    placeholder="2025/2026"
-                  />
+                  <div className="relative">
+                    <AcademicSessionSelect
+                      value={academicSession}
+                      onChange={(value) => {
+                        setAcademicSession(value);
+                        setErrors((prev) => ({ ...prev, academicSession: "" }));
+                      }}
+                      className={`${baseInput} ${errors.academicSession ? errInput : okInput} appearance-none pr-10`}
+                    />
+                    <SelectChevron />
+                  </div>
                   <FieldError message={errors.academicSession} />
                 </div>
 

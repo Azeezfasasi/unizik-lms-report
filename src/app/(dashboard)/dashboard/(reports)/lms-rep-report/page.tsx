@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connectDB } from "@/lib/db/connectDB";
 import CourseRepReport from "@/models/CourseRepReport";
 import { ReportStatusBadge } from "@/components/reports/ReportStatusBadge";
+import { Plus } from "lucide-react";
 
 export default async function LmsRepReportListPage() {
   await connectDB();
@@ -19,7 +20,7 @@ export default async function LmsRepReportListPage() {
           <h2 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">LMS Rep Report</h2>
         </div>
         <Link href="/dashboard/lms-rep-report/new" className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
-          New report
+          <Plus className="w-4 h-4" /> Submit report
         </Link>
       </div>
 

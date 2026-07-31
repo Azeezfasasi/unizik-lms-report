@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PercentageRating } from "@/components/shared/PercentageRating";
+import { AcademicWeekGate } from "@/components/shared/AcademicWeekGate";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface CurriculumOption {
   _id: string;
@@ -26,6 +28,7 @@ export default function NewCoordinatorReportPage() {
   const { data: session } = useSession();
   const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
   const [curriculumId, setCurriculumId] = useState("");
+  const [weekId, setWeekId] = useState("");
   const [academicSession, setAcademicSession] = useState("");
   const [semester, setSemester] = useState("FIRST");
   const [recommendations, setRecommendations] = useState("");
@@ -35,6 +38,7 @@ export default function NewCoordinatorReportPage() {
   const [generalComments, setGeneralComments] = useState("");
   const [summary, setSummary] = useState<CoordinatorSummary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetch("/api/curriculum")
@@ -54,10 +58,18 @@ export default function NewCoordinatorReportPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    setMessage("");
+
+    if (!weekId) {
+      setMessage("Select or create an academic week before submitting this report.");
+      return;
+    }
+
     setLoading(true);
 
     const payload = {
       curriculumId,
+      weekId,
       preparedBy: session?.user?.id,
       academicSession,
       semester,
@@ -76,7 +88,11 @@ export default function NewCoordinatorReportPage() {
     if (response.ok) {
       const report = await response.json();
       router.push(`/dashboard/pg-course-report/${report._id}`);
+      return;
     }
+
+    const result = await response.json().catch(() => ({}));
+    setMessage(result.message || "Unable to save the PG coordinator report.");
     setLoading(false);
   }
 
@@ -101,7 +117,7 @@ export default function NewCoordinatorReportPage() {
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Academic Session
-            <input value={academicSession} onChange={(event) => setAcademicSession(event.target.value)} required className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="2025/2026" />
+            <AcademicSessionSelect value={academicSession} onChange={setAcademicSession} autoSelectCurrent className="w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -122,46 +138,62 @@ export default function NewCoordinatorReportPage() {
           </label>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
-          <h3 className="font-semibold text-slate-900">Auto-generated summary</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div>Total Students: {summary?.totalStudents ?? 0}</div>
-            <div>Total Courses: {summary?.totalCourses ?? 0}</div>
-            <div>Compliance Rate: {summary?.lectureComplianceRate ?? 0}%</div>
-            <div>Examiner Reports Pending: {summary?.examinerReportsSummary?.pending ?? 0}</div>
-          </div>
+        <div className="mt-6">
+          <AcademicWeekGate
+            curriculumId={curriculumId}
+            academicSession={academicSession}
+            semester={semester}
+            weekId={weekId}
+            onWeekChange={setWeekId}
+          />
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <PercentageRating label="Lecturer response rate" value={lecturerResponseRate} onChange={setLecturerResponseRate} />
-          <label className="space-y-2 text-sm font-medium text-slate-700">
-            Misconduct severity
-            <select value={misconductSeverity} onChange={(event) => setMisconductSeverity(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2">
-              <option value="NONE">None</option>
-              <option value="MINOR">Minor</option>
-              <option value="SERIOUS">Serious</option>
-            </select>
-          </label>
-        </div>
+        {weekId ? (
+          <>
+            <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
+              <h3 className="font-semibold text-slate-900">Auto-generated summary</h3>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>Total Students: {summary?.totalStudents ?? 0}</div>
+                <div>Total Courses: {summary?.totalCourses ?? 0}</div>
+                <div>Compliance Rate: {summary?.lectureComplianceRate ?? 0}%</div>
+                <div>Examiner Reports Pending: {summary?.examinerReportsSummary?.pending ?? 0}</div>
+              </div>
+            </div>
 
-        <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
-          General comments
-          <textarea value={generalComments} onChange={(event) => setGeneralComments(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="Add any additional context for the director or faculty review." />
-        </label>
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <PercentageRating label="Lecturer response rate" value={lecturerResponseRate} onChange={setLecturerResponseRate} />
+              <label className="space-y-2 text-sm font-medium text-slate-700">
+                Misconduct severity
+                <select value={misconductSeverity} onChange={(event) => setMisconductSeverity(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2">
+                  <option value="NONE">None</option>
+                  <option value="MINOR">Minor</option>
+                  <option value="SERIOUS">Serious</option>
+                </select>
+              </label>
+            </div>
 
-        <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
-          Exam Timetable Status
-          <input value={examTimetableStatus} onChange={(event) => setExamTimetableStatus(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
-        </label>
+            <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
+              General comments
+              <textarea value={generalComments} onChange={(event) => setGeneralComments(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="Add any additional context for the director or faculty review." />
+            </label>
 
-        <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
-          Recommendations
-          <textarea value={recommendations} onChange={(event) => setRecommendations(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
-        </label>
+            <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
+              Exam Timetable Status
+              <input value={examTimetableStatus} onChange={(event) => setExamTimetableStatus(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
+            </label>
+
+            <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
+              Recommendations
+              <textarea value={recommendations} onChange={(event) => setRecommendations(event.target.value)} rows={4} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
+            </label>
+          </>
+        ) : null}
+
+        {message ? <p className="mt-6 text-sm text-rose-600">{message}</p> : null}
 
         <div className="mt-6 flex justify-end">
-          <button type="submit" disabled={loading} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-            {loading ? "Creating..." : "Create report"}
+          <button type="submit" disabled={loading || !weekId} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">
+            {loading ? "Submitting..." : "Submit report"}
           </button>
         </div>
       </form>

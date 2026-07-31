@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface CurriculumOption {
   _id: string;
@@ -162,7 +163,7 @@ export default function NewWeeklyEffectivenessReportPage() {
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Academic Session
-            <input value={academicSession} onChange={(event) => setAcademicSession(event.target.value)} required className="w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="2025/2026" />
+            <AcademicSessionSelect value={academicSession} onChange={setAcademicSession} autoSelectCurrent className="w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -207,7 +208,7 @@ export default function NewWeeklyEffectivenessReportPage() {
 
         <div className="mt-6 flex justify-end">
           <button type="submit" disabled={loading || !weeks.length} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-400">
-            {loading ? "Creating..." : "Create report"}
+            {loading ? "Submitting..." : "Submit report"}
           </button>
         </div>
       </form>

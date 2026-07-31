@@ -18,6 +18,7 @@ const StudentReportSchema = new Schema(
     lectureFeedback: { type: String },
     examFeedback: { type: String },
     instructorFeedback: { type: String },
+    lmsPortalFeedback: { type: String },
     notes: { type: String },
   },
   { timestamps: true }

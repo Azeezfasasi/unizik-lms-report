@@ -25,6 +25,10 @@ export async function POST(req: NextRequest) {
   await connectDB();
   const body = await req.json();
 
+  if (!body.weekId) {
+    return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
+  }
+
   const schedules = await LectureSchedule.find({ curriculumId: body.curriculumId }).lean();
 
   const report = await CourseRepReport.create({

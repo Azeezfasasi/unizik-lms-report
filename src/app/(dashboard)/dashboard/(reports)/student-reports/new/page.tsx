@@ -47,6 +47,7 @@ export default function NewStudentReportPage() {
   const [lectureFeedback, setLectureFeedback] = useState("");
   const [examFeedback, setExamFeedback] = useState("");
   const [instructorFeedback, setInstructorFeedback] = useState("");
+  const [lmsPortalFeedback, setLmsPortalFeedback] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState("DRAFT");
   const [message, setMessage] = useState("");
@@ -121,6 +122,7 @@ export default function NewStudentReportPage() {
       lectureFeedback,
       examFeedback,
       instructorFeedback,
+      lmsPortalFeedback,
       notes,
       status,
       submittedAt: status === "SUBMITTED" ? new Date().toISOString() : undefined,
@@ -241,7 +243,7 @@ export default function NewStudentReportPage() {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <label className="space-y-2 text-sm font-medium text-slate-700">
-            Instructor feedback
+            Supervisor feedback
             <textarea value={instructorFeedback} onChange={(event) => setInstructorFeedback(event.target.value)} rows={4} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" />
           </label>
           <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -250,12 +252,30 @@ export default function NewStudentReportPage() {
           </label>
         </div>
 
+        <div className="grid gap-4">
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            LMS Portal Feedback
+            <textarea
+              value={lmsPortalFeedback}
+              onChange={(event) => setLmsPortalFeedback(event.target.value)}
+              rows={4}
+              placeholder="Share feedback on the LMS portal experience (usability, access issues, suggestions, etc.)"
+              className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm"
+            />
+          </label>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr]">
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Status
-            <select value={status} onChange={(event) => setStatus(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
-              <option value="DRAFT">Draft</option>
-              <option value="SUBMITTED">Submitted</option>
+            <select
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+              title={status === "DRAFT" ? "Draft: save your progress without submitting the report." : "Submitted: finalize and submit the report for review."}
+              className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm"
+            >
+              <option value="DRAFT" title="Save your progress without submitting the report.">DRAFT - (save your progress without submitting the report.)</option>
+              <option value="SUBMITTED" title="Finalize and submit the report for review.">SUBMIT - (finalize and submit the report for review.)</option>
             </select>
           </label>
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
@@ -272,7 +292,7 @@ export default function NewStudentReportPage() {
             ) : null}
           </div>
           <button type="submit" disabled={loading || submitting || !studentId || !facultyId || !curriculumId || (isStudent && studentMatchCount !== 1)} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
-            {submitting ? "Saving..." : "Save student report"}
+            {submitting ? "Saving..." : "Submit Report"}
           </button>
         </div>
       </form>
