@@ -86,7 +86,7 @@ export default function LecturesCalendarPage() {
     setLoadingSchedules(true);
     const query = filterCurriculumId ? `?curriculumId=${filterCurriculumId}` : "";
     try {
-      const response = await fetch(`/api/lectures-calendar${query}`);
+      const response = await fetch(`/api/lectures-calendar${query}`, { cache: "no-store" });
       const data = await response.json();
       setSchedules(Array.isArray(data) ? data : []);
     } catch {

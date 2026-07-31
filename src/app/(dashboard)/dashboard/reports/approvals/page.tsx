@@ -187,7 +187,7 @@ export default async function ReportApprovalsPage({ searchParams }: ReportApprov
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-600">Report approvals</p>
-          <h2 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">Review all created reports</h2>
+          <h2 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">Review all submitted reports</h2>
           <p className="mt-1 text-sm text-slate-500">
             Showing {pagedReports.length} of {filteredReports.length} report{filteredReports.length === 1 ? "" : "s"}.
           </p>

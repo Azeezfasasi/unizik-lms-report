@@ -302,7 +302,7 @@ export default function NewExaminerReportPage() {
 
     if (response.ok) {
       setMessageTone("success");
-      setMessage("Examiner report created successfully.");
+      setMessage("Examiner report submitted successfully.");
       router.push("/dashboard/examiner-report");
       router.refresh();
       return;

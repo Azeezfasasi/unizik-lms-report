@@ -26,7 +26,7 @@ export default async function SubmittedReportsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-900">Student reports</h3>
-              <p className="mt-1 text-sm text-slate-500">Latest student-created summaries.</p>
+              <p className="mt-1 text-sm text-slate-500">Latest student-submitted summaries.</p>
             </div>
           </div>
 
