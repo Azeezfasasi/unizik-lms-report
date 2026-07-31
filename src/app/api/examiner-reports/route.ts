@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import ExaminerReport from "@/models/ExaminerReport";
 import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
+import { logAudit } from "@/lib/audit/logAudit";
 
 const REQUIRED_FIELDS = [
   "facultyId",
@@ -68,6 +69,19 @@ export async function POST(request: Request) {
   });
 
   notifyReportEvent("examiner", report._id.toString(), "created").catch(() => {});
+
+  await logAudit({
+    userId: session?.user?.id,
+    userName: session?.user?.name,
+    userEmail: session?.user?.email,
+    userRole: session?.user?.role,
+    action: "REPORT_CREATED",
+    category: "REPORT",
+    description: `${session?.user?.name ?? "Someone"} created an Examiner Report`,
+    entityType: "ExaminerReport",
+    entityId: report._id.toString(),
+    headers: request.headers,
+  });
 
   return NextResponse.json(report, { status: 201 });
 }

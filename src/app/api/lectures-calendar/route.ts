@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import LectureSchedule from "@/models/LectureSchedule";
+import { logAudit } from "@/lib/audit/logAudit";
 
 export async function GET(request: Request) {
   await connectDB();
@@ -16,6 +19,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   await connectDB();
+  const session = await getServerSession(authOptions);
   const payload = await request.json();
 
   if (!payload.curriculumId) {
@@ -27,5 +31,19 @@ export async function POST(request: Request) {
   }
 
   const schedule = await LectureSchedule.create(payload);
+
+  await logAudit({
+    userId: session?.user?.id,
+    userName: session?.user?.name,
+    userEmail: session?.user?.email,
+    userRole: session?.user?.role,
+    action: "LECTURE_SCHEDULE_CREATED",
+    category: "SCHEDULING",
+    description: `${session?.user?.name ?? "Someone"} created lecture schedule ${schedule.title}`,
+    entityType: "LectureSchedule",
+    entityId: schedule._id.toString(),
+    headers: request.headers,
+  });
+
   return NextResponse.json(schedule, { status: 201 });
 }

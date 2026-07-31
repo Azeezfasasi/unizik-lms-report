@@ -12,6 +12,7 @@
  */
 import "@/models/AcademicSession";
 import "@/models/AcademicWeek";
+import "@/models/AuditLog";
 import "@/models/Course";
 import "@/models/CourseRepReport";
 import "@/models/CoordinatorReport";

@@ -6,6 +6,7 @@ import { getDirectorSummary } from "@/lib/data/portal";
 import { getAdapter } from "@/lib/export/adapters";
 import { buildPdfBuffer } from "@/lib/export/toPdf";
 import { uploadAndRegister } from "@/lib/export/uploadAndRegister";
+import { logAudit } from "@/lib/audit/logAudit";
 
 const ALLOWED_ROLES = ["ADMIN", "FACULTY_OFFICER", "PG_COORDINATOR", "DIRECTOR"];
 
@@ -31,6 +32,20 @@ export async function POST(request: NextRequest) {
     format: "PDF",
     reportType: "DIRECTOR",
     generatedBy: session.user.id,
+  });
+
+  await logAudit({
+    userId: session.user.id,
+    userName: session.user.name,
+    userEmail: session.user.email,
+    userRole: session.user.role,
+    action: "DIRECTOR_SUMMARY_GENERATED",
+    category: "REPORT",
+    description: `${session.user.name ?? "Someone"} generated the director summary PDF`,
+    entityType: "GeneratedReportFile",
+    entityId: generatedFile._id.toString(),
+    metadata: { academicSession, semester },
+    headers: request.headers,
   });
 
   return NextResponse.json(generatedFile, { status: 201 });

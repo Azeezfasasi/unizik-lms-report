@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import { hashPassword } from "@/lib/auth";
 import User from "@/models/User";
+import { logAudit } from "@/lib/audit/logAudit";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
@@ -17,6 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
+  const session = await getServerSession(authOptions);
   const { id } = await params;
   const payload = await request.json();
 
@@ -43,17 +47,44 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
+  await logAudit({
+    userId: session?.user?.id,
+    userName: session?.user?.name,
+    userEmail: session?.user?.email,
+    userRole: session?.user?.role,
+    action: "USER_UPDATED",
+    category: "USER",
+    description: `${session?.user?.name ?? "Someone"} updated user ${user.name}`,
+    entityType: "User",
+    entityId: id,
+    headers: request.headers,
+  });
+
   return NextResponse.json(user);
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
+  const session = await getServerSession(authOptions);
   const { id } = await params;
   const user = await User.findByIdAndDelete(id).lean();
 
   if (!user) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
+
+  await logAudit({
+    userId: session?.user?.id,
+    userName: session?.user?.name,
+    userEmail: session?.user?.email,
+    userRole: session?.user?.role,
+    action: "USER_DELETED",
+    category: "USER",
+    description: `${session?.user?.name ?? "Someone"} deleted user ${user.name}`,
+    entityType: "User",
+    entityId: id,
+    headers: request.headers,
+  });
 
   return NextResponse.json({ message: "User deleted" });
 }

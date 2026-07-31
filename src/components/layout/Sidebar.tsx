@@ -37,6 +37,7 @@ export function Sidebar() {
     "/dashboard/pg-course-report": "Reporting",
     "/dashboard/reports/approvals": "Reporting",
     "/dashboard/users": "Administration",
+    "/dashboard/audit-logs": "Administration",
     "/dashboard/settings/profile": "General",
     "/dashboard/supervisor-report": "Reporting",
     "/dashboard/academic-sessions": "Academics",

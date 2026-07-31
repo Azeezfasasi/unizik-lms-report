@@ -6,6 +6,7 @@ import Student from "@/models/Student";
 import User from "@/models/User";
 import { hashPassword } from "@/lib/auth";
 import { sendTransactionalEmail } from "@/lib/email/brevoClient";
+import { logAudit } from "@/lib/audit/logAudit";
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -36,8 +37,22 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   await connectDB();
+  const session = await getServerSession(authOptions);
   const payload = await request.json();
   const student = await Student.create(payload);
+
+  await logAudit({
+    userId: session?.user?.id,
+    userName: session?.user?.name,
+    userEmail: session?.user?.email,
+    userRole: session?.user?.role,
+    action: "STUDENT_CREATED",
+    category: "STUDENT",
+    description: `${session?.user?.name ?? "Someone"} created student ${student.fullName ?? student.name ?? ""}`.trim(),
+    entityType: "Student",
+    entityId: student._id.toString(),
+    headers: request.headers,
+  });
 
   // If the student provided an email, ensure a corresponding User exists and send activation/reset link
   try {

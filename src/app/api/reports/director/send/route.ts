@@ -10,6 +10,7 @@ import { buildExcelBuffer } from "@/lib/export/toExcel";
 import { sendTransactionalEmail } from "@/lib/email/brevoClient";
 import { uploadAndRegister } from "@/lib/export/uploadAndRegister";
 import DirectorReview from "@/models/DirectorReview";
+import { logAudit } from "@/lib/audit/logAudit";
 
 const ALLOWED_ROLES = ["ADMIN", "FACULTY_OFFICER", "PG_COORDINATOR", "DIRECTOR"];
 
@@ -91,6 +92,20 @@ export async function POST(request: NextRequest) {
       sentToName: name,
       subject,
       htmlContent,
+    });
+
+    await logAudit({
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role,
+      action: "DIRECTOR_SUMMARY_SENT",
+      category: "REPORT",
+      description: `${session.user.name ?? "Someone"} sent the director summary to ${email}`,
+      entityType: "DirectorReview",
+      entityId: review._id.toString(),
+      metadata: { academicSession, semester, format },
+      headers: request.headers,
     });
 
     return NextResponse.json({ generatedFile, review }, { status: 201 });

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import AcademicSession from "@/models/AcademicSession";
+import { logAudit } from "@/lib/audit/logAudit";
 
 const SESSION_PATTERN = /^\d{4}\/\d{4}$/;
 
@@ -12,6 +15,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   await connectDB();
+  const authSession = await getServerSession(authOptions);
   const payload = await request.json();
   const name = typeof payload.name === "string" ? payload.name.trim() : "";
 
@@ -31,5 +35,19 @@ export async function POST(request: Request) {
 
   const count = await AcademicSession.countDocuments();
   const session = await AcademicSession.create({ name, isCurrent: count === 0 });
+
+  await logAudit({
+    userId: authSession?.user?.id,
+    userName: authSession?.user?.name,
+    userEmail: authSession?.user?.email,
+    userRole: authSession?.user?.role,
+    action: "ACADEMIC_SESSION_CREATED",
+    category: "SCHEDULING",
+    description: `${authSession?.user?.name ?? "Someone"} created academic session ${session.name}`,
+    entityType: "AcademicSession",
+    entityId: session._id.toString(),
+    headers: request.headers,
+  });
+
   return NextResponse.json(session, { status: 201 });
 }

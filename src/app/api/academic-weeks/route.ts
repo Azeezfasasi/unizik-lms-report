@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import AcademicWeek from "@/models/AcademicWeek";
+import { logAudit } from "@/lib/audit/logAudit";
 
 export async function GET(request: Request) {
   await connectDB();
@@ -27,6 +30,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   await connectDB();
+  const session = await getServerSession(authOptions);
   const payload = await request.json();
 
   if (!payload.curriculumId) {
@@ -42,5 +46,19 @@ export async function POST(request: Request) {
   }
 
   const week = await AcademicWeek.create(payload);
+
+  await logAudit({
+    userId: session?.user?.id,
+    userName: session?.user?.name,
+    userEmail: session?.user?.email,
+    userRole: session?.user?.role,
+    action: "ACADEMIC_WEEK_CREATED",
+    category: "SCHEDULING",
+    description: `${session?.user?.name ?? "Someone"} created academic week ${week.weekNumber}`,
+    entityType: "AcademicWeek",
+    entityId: week._id.toString(),
+    headers: request.headers,
+  });
+
   return NextResponse.json(week, { status: 201 });
 }

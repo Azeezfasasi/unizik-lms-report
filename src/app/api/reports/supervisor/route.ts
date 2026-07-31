@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import SupervisorReport from "@/models/SupervisorReport";
 import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
+import { logAudit } from "@/lib/audit/logAudit";
 
 export async function GET(request: NextRequest) {
   await connectDB();
@@ -56,6 +57,19 @@ export async function POST(request: NextRequest) {
   });
 
   notifyReportEvent("supervisor", report._id.toString(), "created").catch(() => {});
+
+  await logAudit({
+    userId: session.user.id,
+    userName: session.user.name,
+    userEmail: session.user.email,
+    userRole: session.user.role,
+    action: "REPORT_CREATED",
+    category: "REPORT",
+    description: `${session.user.name ?? "Someone"} created a Supervisor Report`,
+    entityType: "SupervisorReport",
+    entityId: report._id.toString(),
+    headers: request.headers,
+  });
 
   return NextResponse.json(report, { status: 201 });
 }
