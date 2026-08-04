@@ -208,7 +208,7 @@ export default function NewWeeklyEffectivenessReportPage() {
 
         <div className="mt-6 flex justify-end">
           <button type="submit" disabled={loading || !weeks.length} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-400">
-            {loading ? "Submitting..." : "Submit report"}
+            {loading ? "Submitting..." : "Submit Report"}
           </button>
         </div>
       </form>
