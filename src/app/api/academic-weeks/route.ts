@@ -5,6 +5,8 @@ import { connectDB } from "@/lib/db/connectDB";
 import AcademicWeek from "@/models/AcademicWeek";
 import { logAudit } from "@/lib/audit/logAudit";
 
+const ALLOWED_ROLES = ["ADMIN", "PG_COORDINATOR", "LMS_REP"];
+
 export async function GET(request: Request) {
   await connectDB();
   const { searchParams } = new URL(request.url);
@@ -31,6 +33,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   await connectDB();
   const session = await getServerSession(authOptions);
+
+  if (!session?.user || !ALLOWED_ROLES.includes(session.user.role?.toString().toUpperCase().trim())) {
+    return NextResponse.json({ message: "Only admins, PG coordinators, and LMS reps can create academic weeks." }, { status: 403 });
+  }
+
   const payload = await request.json();
 
   if (!payload.curriculumId) {

@@ -26,6 +26,10 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   const payload = await request.json();
 
+  if (!payload.weekId) {
+    return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
+  }
+
   let reportPayload = payload;
   if (session?.user?.role === "STUDENT") {
     if (!session.user.email) {

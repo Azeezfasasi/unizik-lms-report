@@ -5,6 +5,10 @@ const StudentReportSchema = new Schema(
     studentId: { type: Schema.Types.ObjectId, ref: "Student", required: true },
     facultyId: { type: Schema.Types.ObjectId, ref: "Faculty", required: true },
     curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum", required: true },
+    courseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+    weekId: { type: Schema.Types.ObjectId, ref: "AcademicWeek", required: true },
+    academicSession: { type: String, required: true },
+    semester: { type: String, enum: ["FIRST", "SECOND"], required: true },
     preparedBy: { type: Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,

@@ -24,6 +24,12 @@ interface CurriculumOption {
   departmentId?: string;
 }
 
+interface CourseOption {
+  _id: string;
+  title: string;
+  code: string;
+}
+
 const SEMESTERS = ["FIRST", "SECOND"] as const;
 
 export default function NewSupervisorReportPage() {
@@ -32,9 +38,11 @@ export default function NewSupervisorReportPage() {
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
+  const [courses, setCourses] = useState<CourseOption[]>([]);
   const [facultyId, setFacultyId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [curriculumId, setCurriculumId] = useState("");
+  const [courseId, setCourseId] = useState("");
   const [weekId, setWeekId] = useState("");
   const [academicSession, setAcademicSession] = useState("");
   const [semester, setSemester] = useState<typeof SEMESTERS[number]>("FIRST");
@@ -81,6 +89,37 @@ export default function NewSupervisorReportPage() {
     [curriculums, departmentId]
   );
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCourses() {
+      if (!curriculumId) {
+        setCourses([]);
+        setCourseId("");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/courses?curriculumId=${curriculumId}`);
+        const data = await response.json();
+        if (cancelled) return;
+        const list: CourseOption[] = Array.isArray(data) ? data : [];
+        setCourses(list);
+        setCourseId((current) => (list.some((course) => course._id === current) ? current : list[0]?._id ?? ""));
+      } catch {
+        if (!cancelled) {
+          setCourses([]);
+          setCourseId("");
+        }
+      }
+    }
+
+    loadCourses();
+    return () => {
+      cancelled = true;
+    };
+  }, [curriculumId]);
+
   function handleDepartmentChange(nextDepartmentId: string) {
     setDepartmentId(nextDepartmentId);
     setCurriculumId("");
@@ -95,6 +134,11 @@ export default function NewSupervisorReportPage() {
       return;
     }
 
+    if (!courseId) {
+      setMessage("Select a course before submitting this report.");
+      return;
+    }
+
     if (!weekId) {
       setMessage("Select or create an academic week before submitting this report.");
       return;
@@ -106,6 +150,7 @@ export default function NewSupervisorReportPage() {
       facultyId,
       departmentId,
       curriculumId,
+      courseId,
       weekId,
       academicSession,
       semester,
@@ -178,6 +223,24 @@ export default function NewSupervisorReportPage() {
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
+            Course
+            <select
+              value={courseId}
+              onChange={(event) => setCourseId(event.target.value)}
+              disabled={!curriculumId || courses.length === 0}
+              className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:cursor-wait disabled:text-slate-400"
+            >
+              {courses.length > 0 ? (
+                courses.map((course) => (
+                  <option key={course._id} value={course._id}>{course.title} ({course.code})</option>
+                ))
+              ) : (
+                <option value="">No courses available</option>
+              )}
+            </select>
+          </label>
+
+          <label className="space-y-2 text-sm font-medium text-slate-700">
             Academic session
             <AcademicSessionSelect
               value={academicSession}
@@ -211,6 +274,7 @@ export default function NewSupervisorReportPage() {
         <div className="mt-6">
           <AcademicWeekGate
             curriculumId={curriculumId}
+            courseId={courseId}
             academicSession={academicSession}
             semester={semester}
             weekId={weekId}
@@ -243,7 +307,7 @@ export default function NewSupervisorReportPage() {
         {message ? <p className="mt-4 text-sm text-rose-600">{message}</p> : null}
 
         <div className="mt-6 flex justify-end">
-          <button type="submit" disabled={loading || !weekId} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="submit" disabled={loading || !curriculumId || !courseId || !weekId} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
             {loading ? "Saving..." : "Submit supervisor report"}
           </button>
         </div>

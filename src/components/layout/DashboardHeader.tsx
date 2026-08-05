@@ -20,6 +20,8 @@ export function DashboardHeader() {
 
   const userName = session?.user?.name || "User";
   const userInitial = userName.charAt(0).toUpperCase();
+  const userRole = session?.user?.role?.toString().toUpperCase().trim();
+  const visibleCenterNav = userRole === "STUDENT" ? [] : centerNav;
 
   // Close the account dropdown on outside click.
   useEffect(() => {
@@ -45,7 +47,7 @@ export function DashboardHeader() {
         </Link>
 
         <nav className="hidden md:flex md:flex-1 md:items-center md:justify-center md:gap-8">
-          {centerNav.map((item) => (
+          {visibleCenterNav.map((item) => (
             <a
               key={item.href}
               href={item.href}
@@ -145,7 +147,7 @@ export function DashboardHeader() {
           </button>
 
           {/* Mobile: quick access to the marketing anchors, kept separate from the Sidebar */}
-          {centerNav.length > 0 ? (
+          {visibleCenterNav.length > 0 ? (
             <button
               type="button"
               onClick={() => setMobileNavOpen((v) => !v)}
@@ -161,7 +163,7 @@ export function DashboardHeader() {
       {mobileNavOpen ? (
         <div className="border-t border-slate-200 bg-white px-4 py-3 sm:hidden">
           <div className="space-y-1">
-            {centerNav.map((link) => (
+            {visibleCenterNav.map((link) => (
               <a
                 key={link.href}
                 href={link.href}

@@ -45,6 +45,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Select a curriculum before submitting this report." }, { status: 400 });
   }
 
+  if (!body.courseId) {
+    return NextResponse.json({ message: "Select a course before submitting this report." }, { status: 400 });
+  }
+
   if (!body.weekId) {
     return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
   }

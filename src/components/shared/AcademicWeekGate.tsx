@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+const WEEK_CREATOR_ROLES = ["ADMIN", "PG_COORDINATOR", "LMS_REP"];
 
 interface CourseOption {
   _id: string;
@@ -31,6 +34,8 @@ export function AcademicWeekGate({
   weekId: string;
   onWeekChange: (weekId: string) => void;
 }) {
+  const { data: session } = useSession();
+  const canCreateWeek = WEEK_CREATOR_ROLES.includes(session?.user?.role?.toString().toUpperCase().trim() ?? "");
   const [weeks, setWeeks] = useState<AcademicWeekOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState<CourseOption[]>([]);
@@ -62,11 +67,11 @@ export function AcademicWeekGate({
         if (cancelled) return;
         const list = Array.isArray(data) ? data : [];
         setWeeks(list);
-        setShowCreateForm(list.length === 0);
+        setShowCreateForm(list.length === 0 && canCreateWeek);
       } catch {
         if (!cancelled) {
           setWeeks([]);
-          setShowCreateForm(true);
+          setShowCreateForm(canCreateWeek);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -78,7 +83,7 @@ export function AcademicWeekGate({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [curriculumId, courseId, academicSession, semester, ready]);
+  }, [curriculumId, courseId, academicSession, semester, ready, canCreateWeek]);
 
   useEffect(() => {
     let cancelled = false;
@@ -184,22 +189,26 @@ export function AcademicWeekGate({
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={() => {
-              resetCreateFields();
-              setShowCreateForm((current) => !current);
-            }}
-            className="text-sm font-medium text-teal-700 hover:text-teal-800"
-          >
-            {showCreateForm ? "Cancel" : "+ Add another week"}
-          </button>
+          {canCreateWeek ? (
+            <button
+              type="button"
+              onClick={() => {
+                resetCreateFields();
+                setShowCreateForm((current) => !current);
+              }}
+              className="text-sm font-medium text-teal-700 hover:text-teal-800"
+            >
+              {showCreateForm ? "Cancel" : "+ Add another week"}
+            </button>
+          ) : null}
         </div>
-      ) : (
+      ) : canCreateWeek ? (
         <p className="mt-3 text-sm font-medium text-amber-700">No academic week exists yet for this selection. Create one below to continue.</p>
+      ) : (
+        <p className="mt-3 text-sm font-medium text-amber-700">No academic week exists yet for this selection. Contact an admin, PG coordinator, or LMS rep to create one.</p>
       )}
 
-      {showCreateForm ? (
+      {showCreateForm && canCreateWeek ? (
         <form onSubmit={handleCreateWeek} className="mt-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
           {!courseId ? (
             <label className="space-y-1 text-xs font-medium text-slate-700 sm:col-span-2">

@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { AcademicWeekGate } from "@/components/shared/AcademicWeekGate";
+import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 
 interface StudentOption {
   _id: string;
@@ -23,6 +25,12 @@ interface CurriculumOption {
   programName: string;
 }
 
+interface CourseOption {
+  _id: string;
+  title: string;
+  code: string;
+}
+
 const RATINGS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
 export default function NewStudentReportPage() {
@@ -33,9 +41,14 @@ export default function NewStudentReportPage() {
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
   const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
+  const [courses, setCourses] = useState<CourseOption[]>([]);
   const [studentId, setStudentId] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [curriculumId, setCurriculumId] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [academicSession, setAcademicSession] = useState("");
+  const [semester, setSemester] = useState("FIRST");
+  const [weekId, setWeekId] = useState("");
   const selectedStudent = students.find((student) => student._id === studentId);
   const studentDisplayName = isStudent
     ? session?.user?.name ?? selectedStudent?.fullName ?? ""
@@ -101,10 +114,46 @@ export default function NewStudentReportPage() {
     loadOptions();
   }, [session?.user?.email, session?.user?.role, isStudent]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCourses() {
+      if (!curriculumId) {
+        setCourses([]);
+        setCourseId("");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/courses?curriculumId=${curriculumId}`);
+        const data = await response.json();
+        if (cancelled) return;
+        const list: CourseOption[] = Array.isArray(data) ? data : [];
+        setCourses(list);
+        setCourseId((current) => (list.some((course) => course._id === current) ? current : list[0]?._id ?? ""));
+      } catch {
+        if (!cancelled) {
+          setCourses([]);
+          setCourseId("");
+        }
+      }
+    }
+
+    loadCourses();
+    return () => {
+      cancelled = true;
+    };
+  }, [curriculumId]);
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!studentId || !facultyId || !curriculumId) {
-      setMessage("Choose a student, faculty, and curriculum before saving.");
+    if (!studentId || !facultyId || !curriculumId || !courseId) {
+      setMessage("Choose a student, faculty, curriculum, and course before saving.");
+      return;
+    }
+
+    if (!weekId) {
+      setMessage("Select or create an academic week before submitting this report.");
       return;
     }
 
@@ -115,6 +164,10 @@ export default function NewStudentReportPage() {
       studentId,
       facultyId,
       curriculumId,
+      courseId,
+      weekId,
+      academicSession,
+      semester,
       preparedBy: session?.user?.id,
       teachingQuality,
       examPreparedness,
@@ -184,6 +237,7 @@ export default function NewStudentReportPage() {
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Faculty
             <select value={facultyId} onChange={(event) => setFacultyId(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+              <option value="">Choose a faculty</option>
               {faculties.map((faculty) => (
                 <option key={faculty._id} value={faculty._id}>{faculty.name}</option>
               ))}
@@ -191,15 +245,59 @@ export default function NewStudentReportPage() {
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
-            Course
+            Curriculum
             <select value={curriculumId} onChange={(event) => setCurriculumId(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+              <option value="">Choose a Curriculum</option>
               {curriculums.map((curriculum) => (
                 <option key={curriculum._id} value={curriculum._id}>{curriculum.programName}</option>
               ))}
             </select>
           </label>
+
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Course
+            <select
+              value={courseId}
+              onChange={(event) => setCourseId(event.target.value)}
+              disabled={!curriculumId || courses.length === 0}
+              className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:cursor-wait disabled:text-slate-400"
+            >
+              <option value="">Choose a course</option>
+              {courses.length > 0 ? (
+                courses.map((course) => (
+                  <option key={course._id} value={course._id}>{course.title} ({course.code})</option>
+                ))
+              ) : (
+                <option value="">No courses available</option>
+              )}
+            </select>
+          </label>
+
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Academic Session
+            <AcademicSessionSelect value={academicSession} onChange={setAcademicSession} autoSelectCurrent className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" />
+          </label>
+
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Semester
+            <select value={semester} onChange={(event) => setSemester(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+              <option value="FIRST">First</option>
+              <option value="SECOND">Second</option>
+            </select>
+          </label>
         </div>
 
+        <AcademicWeekGate
+          curriculumId={curriculumId}
+          courseId={courseId}
+          academicSession={academicSession}
+          semester={semester}
+          weekId={weekId}
+          onWeekChange={setWeekId}
+        />
+
+        {weekId ? (
+        <>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-900">Teaching quality</p>
@@ -283,6 +381,8 @@ export default function NewStudentReportPage() {
             <p className="mt-2">{session?.user?.name ?? selectedStudent?.fullName ?? "Loading user..."}</p>
           </div>
         </div>
+        </>
+        ) : null}
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -291,7 +391,7 @@ export default function NewStudentReportPage() {
               <p className="mt-2 text-sm font-medium text-amber-700">Multiple student records found for your account. Contact the administrator to resolve duplicates.</p>
             ) : null}
           </div>
-          <button type="submit" disabled={loading || submitting || !studentId || !facultyId || !curriculumId || (isStudent && studentMatchCount !== 1)} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
+          <button type="submit" disabled={loading || submitting || !studentId || !facultyId || !curriculumId || !courseId || !weekId || (isStudent && studentMatchCount !== 1)} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
             {submitting ? "Saving..." : "Submit Report"}
           </button>
         </div>
