@@ -159,6 +159,14 @@ export default async function DashboardPage() {
             ))}
           </section>
 
+          {(session?.user?.role === "ADMIN" || session?.user?.role === "FACULTY_OFFICER" || session?.user?.role === "PG_COORDINATOR") && (
+            <AnalyticsPieCharts
+              reportsByType={summary.reportsByType}
+              usersByRole={summary.usersByRole}
+              studentsByFaculty={summary.studentsByFaculty}
+            />
+          )}
+
           <section className="grid gap-4 sm:gap-6 xl:grid-cols-[1.4fr_0.8fr]">
             {(session?.user?.role === "ADMIN" || session?.user?.role === "FACULTY_OFFICER" || session?.user?.role === "PG_COORDINATOR" || session?.user?.role === "EXAMINER") && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
@@ -247,14 +255,6 @@ export default async function DashboardPage() {
             </div>
             )}
           </section>
-
-          {(session?.user?.role === "ADMIN" || session?.user?.role === "FACULTY_OFFICER" || session?.user?.role === "PG_COORDINATOR") && (
-            <AnalyticsPieCharts
-              reportsByType={summary.reportsByType}
-              usersByRole={summary.usersByRole}
-              studentsByFaculty={summary.studentsByFaculty}
-            />
-          )}
         </>
       )}
     </div>
