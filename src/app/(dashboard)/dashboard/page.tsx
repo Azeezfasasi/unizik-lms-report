@@ -159,6 +159,7 @@ export default async function DashboardPage() {
           </section>
 
           <section className="grid gap-4 sm:gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+            {(session?.user?.role === "ADMIN" || session?.user?.role === "FACULTY_OFFICER" || session?.user?.role === "PG_COORDINATOR" || session?.user?.role === "EXAMINER") && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -208,7 +209,10 @@ export default async function DashboardPage() {
                 </div>
               )}
             </div>
+            )}
 
+            {/* Quick actions for only ADMIN, FACULTY_OFFICER, and PG_COORDINATOR */}
+            {(session?.user?.role === "ADMIN" || session?.user?.role === "FACULTY_OFFICER" || session?.user?.role === "PG_COORDINATOR") && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
               <h3 className="text-base font-semibold text-slate-900 sm:text-lg">Quick Actions</h3>
               <div className="mt-4 space-y-2">
@@ -240,6 +244,7 @@ export default async function DashboardPage() {
                 ))}
               </div>
             </div>
+            )}
           </section>
         </>
       )}
