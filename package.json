@@ -21,7 +21,8 @@
     "next-auth": "^4.24.14",
     "next-cloudinary": "^6.17.5",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "recharts": "^3.10.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

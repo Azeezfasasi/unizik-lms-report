@@ -730,19 +730,114 @@ export async function getUsers(): Promise<UserItem[]> {
   }
 }
 
+export interface DashboardBreakdownSlice {
+  label: string;
+  value: number;
+}
+
 export async function getDashboardSummary() {
   try {
     await connectDB();
-    const [faculties, curriculums, students, reports] = await Promise.all([
+    const [
+      faculties,
+      curriculums,
+      students,
+      reports,
+      studentReportCount,
+      examinerReportCount,
+      supervisorReportCount,
+      lmsRepReportCount,
+      coordinatorReportCount,
+      usersByRole,
+      studentsByFaculty,
+    ] = await Promise.all([
       Faculty.countDocuments(),
       Curriculum.countDocuments(),
       Student.countDocuments(),
       StudentReport.countDocuments({ status: "SUBMITTED" }),
+      StudentReport.countDocuments(),
+      ExaminerReport.countDocuments(),
+      SupervisorReport.countDocuments(),
+      CourseRepReport.countDocuments(),
+      CoordinatorReport.countDocuments(),
+      User.aggregate([{ $group: { _id: "$role", count: { $sum: 1 } } }]),
+      Student.aggregate([
+        { $group: { _id: "$facultyId", count: { $sum: 1 } } },
+        { $lookup: { from: "faculties", localField: "_id", foreignField: "_id", as: "faculty" } },
+      ]),
     ]);
 
-    return { faculties, curriculums, students, submittedReports: reports };
+    const reportsByType: DashboardBreakdownSlice[] = [
+      { label: "Student", value: studentReportCount },
+      { label: "Examiner", value: examinerReportCount },
+      { label: "Supervisor", value: supervisorReportCount },
+      { label: "LMS Rep", value: lmsRepReportCount },
+      { label: "Coordinator", value: coordinatorReportCount },
+    ].filter((slice) => slice.value > 0);
+
+    const roleOrder = [
+      "ADMIN",
+      "PG_COORDINATOR",
+      "LMS_REP",
+      "FACULTY_OFFICER",
+      "EXAMINER",
+      "SUPERVISOR",
+      "DIRECTOR",
+      "STUDENT",
+    ];
+    const roleLabels: Record<string, string> = {
+      ADMIN: "Admin",
+      FACULTY_OFFICER: "Faculty Officer",
+      EXAMINER: "Examiner",
+      STUDENT: "Student",
+      LMS_REP: "LMS Rep",
+      PG_COORDINATOR: "PG Coordinator",
+      SUPERVISOR: "Supervisor",
+      DIRECTOR: "Director",
+    };
+
+    const roleCounts = new Map((usersByRole as { _id: string; count: number }[]).map((entry) => [entry._id, entry.count]));
+    const usersByRoleData: DashboardBreakdownSlice[] = roleOrder
+      .filter((role) => roleCounts.has(role))
+      .map((role) => ({ label: roleLabels[role] ?? role, value: roleCounts.get(role) ?? 0 }));
+
+    const FACULTY_SLICE_CAP = 6;
+    const facultyCounts = (
+      studentsByFaculty as { _id: unknown; count: number; faculty: { name?: string }[] }[]
+    )
+      .map((entry) => ({ label: entry.faculty[0]?.name ?? "Unassigned", value: entry.count }))
+      .sort((a, b) => b.value - a.value);
+
+    const studentsByFacultyData: DashboardBreakdownSlice[] =
+      facultyCounts.length > FACULTY_SLICE_CAP
+        ? [
+            ...facultyCounts.slice(0, FACULTY_SLICE_CAP),
+            {
+              label: "Other",
+              value: facultyCounts.slice(FACULTY_SLICE_CAP).reduce((sum, entry) => sum + entry.value, 0),
+            },
+          ]
+        : facultyCounts;
+
+    return {
+      faculties,
+      curriculums,
+      students,
+      submittedReports: reports,
+      reportsByType,
+      usersByRole: usersByRoleData,
+      studentsByFaculty: studentsByFacultyData,
+    };
   } catch {
-    return { faculties: 0, curriculums: 0, students: 0, submittedReports: 0 };
+    return {
+      faculties: 0,
+      curriculums: 0,
+      students: 0,
+      submittedReports: 0,
+      reportsByType: [] as DashboardBreakdownSlice[],
+      usersByRole: [] as DashboardBreakdownSlice[],
+      studentsByFaculty: [] as DashboardBreakdownSlice[],
+    };
   }
 }
 

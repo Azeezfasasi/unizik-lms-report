@@ -5,6 +5,7 @@ import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getDashboardSummary, getExaminerReports } from "@/lib/data/portal";
 import Greetings from "@/components/layout/Greetings";
+import { AnalyticsPieCharts } from "@/components/dashboard/AnalyticsPieCharts";
 
 const statIcons: Record<string, ReactNode> = {
   Faculties: (
@@ -246,6 +247,14 @@ export default async function DashboardPage() {
             </div>
             )}
           </section>
+
+          {(session?.user?.role === "ADMIN" || session?.user?.role === "FACULTY_OFFICER" || session?.user?.role === "PG_COORDINATOR") && (
+            <AnalyticsPieCharts
+              reportsByType={summary.reportsByType}
+              usersByRole={summary.usersByRole}
+              studentsByFaculty={summary.studentsByFaculty}
+            />
+          )}
         </>
       )}
     </div>
