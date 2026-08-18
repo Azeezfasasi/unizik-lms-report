@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, use } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function NewDepartmentPage({ params }: { params: Promise<{ facultyId: string }> }) {
   const { facultyId } = use(params);
@@ -9,25 +10,31 @@ export default function NewDepartmentPage({ params }: { params: Promise<{ facult
   const [name, setName] = useState("");
   const [hod, setHod] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    setSubmitting(true);
     setMessage("Creating department...");
 
-    const response = await fetch("/api/departments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, hod, facultyId }),
-    });
+    try {
+      const response = await fetch("/api/departments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, hod, facultyId }),
+      });
 
-    if (response.ok) {
-      setMessage("Department created successfully.");
-      router.push(`/dashboard/faculty-departments/${facultyId}`);
-      router.refresh();
-      return;
+      if (response.ok) {
+        setMessage("Department created successfully.");
+        router.push(`/dashboard/faculty-departments/${facultyId}`);
+        router.refresh();
+        return;
+      }
+
+      setMessage("Unable to create department right now.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("Unable to create department right now.");
   }
 
   return (
@@ -46,7 +53,20 @@ export default function NewDepartmentPage({ params }: { params: Promise<{ facult
           <label className="mb-2 block text-sm font-medium text-slate-700">Head of Department</label>
           <input value={hod} onChange={(event) => setHod(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" placeholder="Dr. Emeka Uche" />
         </div>
-        <button type="submit" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Create department</button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Creating...
+            </>
+          ) : (
+            "Create department"
+          )}
+        </button>
       </form>
 
       {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}

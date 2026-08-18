@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface DepartmentOption {
   id: string;
@@ -16,6 +17,7 @@ export default function NewCurriculumPage() {
   const [departmentId, setDepartmentId] = useState("");
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadDepartments() {
@@ -38,22 +40,27 @@ export default function NewCurriculumPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    setSubmitting(true);
     setMessage("Saving curriculum...");
 
-    const response = await fetch("/api/curriculum", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ programName, level, version, departmentId }),
-    });
+    try {
+      const response = await fetch("/api/curriculum", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ programName, level, version, departmentId }),
+      });
 
-    if (response.ok) {
-      setMessage("Curriculum created successfully.");
-      router.push("/dashboard/curriculum");
-      router.refresh();
-      return;
+      if (response.ok) {
+        setMessage("Curriculum created successfully.");
+        router.push("/dashboard/curriculum");
+        router.refresh();
+        return;
+      }
+
+      setMessage("Unable to create curriculum right now.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("Unable to create curriculum right now.");
   }
 
   return (
@@ -92,7 +99,20 @@ export default function NewCurriculumPage() {
             )}
           </select>
         </div>
-        <button type="submit" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Save curriculum</button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Saving...
+            </>
+          ) : (
+            "Save curriculum"
+          )}
+        </button>
       </form>
 
       {message ? <p className="text-sm text-slate-600">{message}</p> : null}

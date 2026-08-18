@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface CourseFormProps {
   params: Promise<{ curriculumId: string }>;
@@ -178,10 +179,7 @@ export default function NewCoursePage({ params }: CourseFormProps) {
             >
               {isSubmitting ? (
                 <>
-                  <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 animate-spin">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
-                    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                  </svg>
+                  <Spinner className="h-4 w-4" />
                   Saving...
                 </>
               ) : (

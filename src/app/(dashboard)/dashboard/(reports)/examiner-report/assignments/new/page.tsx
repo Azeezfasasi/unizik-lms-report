@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface FacultyOption {
   id: string;
@@ -311,9 +312,16 @@ export default function NewTeachingAssignmentPage() {
         <button
           type="submit"
           disabled={submitting || optionsLoading}
-          className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {submitting ? "Saving..." : "Save assignment"}
+          {submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Saving...
+            </>
+          ) : (
+            "Save assignment"
+          )}
         </button>
       </form>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface AuditLogItem {
   _id: string;
@@ -113,8 +114,10 @@ export default function AuditLogsPage() {
         <button
           type="button"
           onClick={() => loadLogs(page)}
-          className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
         >
+          {loading ? <Spinner className="h-3.5 w-3.5" /> : null}
           Refresh
         </button>
       </div>
@@ -159,10 +162,20 @@ export default function AuditLogsPage() {
         </label>
 
         <div className="flex items-end gap-2 lg:col-span-6">
-          <button type="submit" className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
+          >
+            {loading ? <Spinner className="h-3.5 w-3.5" /> : null}
             Apply filters
           </button>
-          <button type="button" onClick={handleResetFilters} className="rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            disabled={loading}
+            className="rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          >
             Reset
           </button>
         </div>
@@ -193,7 +206,12 @@ export default function AuditLogsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-sm text-slate-500">Loading logs…</td>
+                  <td colSpan={6} className="py-6 text-center text-sm text-slate-500">
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner className="h-3.5 w-3.5" />
+                      Loading logs…
+                    </span>
+                  </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>

@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function ResetCard({ token }: { token?: string }) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -17,19 +19,24 @@ export default function ResetCard({ token }: { token?: string }) {
       return;
     }
 
-    const response = await fetch("/api/auth/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, password }),
-    });
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
 
-    if (response.ok) {
-      setMessage("Password reset successfully. Redirecting to sign in...");
-      setTimeout(() => router.push("/login"), 1200);
-      return;
+      if (response.ok) {
+        setMessage("Password reset successfully. Redirecting to sign in...");
+        setTimeout(() => router.push("/login"), 1200);
+        return;
+      }
+
+      setMessage("Unable to reset password right now.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("Unable to reset password right now.");
   }
 
   return (
@@ -60,8 +67,19 @@ export default function ResetCard({ token }: { token?: string }) {
           />
         </div>
 
-        <button type="submit" className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-200/20 transition hover:bg-slate-800">
-          Update password
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-200/20 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Updating password...
+            </>
+          ) : (
+            "Update password"
+          )}
         </button>
       </form>
 

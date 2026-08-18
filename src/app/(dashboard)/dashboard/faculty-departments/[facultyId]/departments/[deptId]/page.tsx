@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
 import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function EditDepartmentPage({ params }: { params: Promise<{ facultyId: string; deptId: string }> }) {
   const { facultyId, deptId } = use(params);
@@ -11,6 +12,7 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ facul
   const [name, setName] = useState("");
   const [hod, setHod] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadDepartment() {
@@ -25,22 +27,27 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ facul
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    setSubmitting(true);
     setMessage("Updating department...");
 
-    const response = await fetch(`/api/departments/${deptId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, hod }),
-    });
+    try {
+      const response = await fetch(`/api/departments/${deptId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, hod }),
+      });
 
-    if (response.ok) {
-      setMessage("Department updated successfully.");
-      router.push(`/dashboard/faculty-departments/${facultyId}`);
-      router.refresh();
-      return;
+      if (response.ok) {
+        setMessage("Department updated successfully.");
+        router.push(`/dashboard/faculty-departments/${facultyId}`);
+        router.refresh();
+        return;
+      }
+
+      setMessage("Unable to update department right now.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("Unable to update department right now.");
   }
 
   return (
@@ -59,7 +66,20 @@ export default function EditDepartmentPage({ params }: { params: Promise<{ facul
           <label className="mb-2 block text-sm font-medium text-slate-700">Head of Department</label>
           <input value={hod} onChange={(event) => setHod(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" />
         </div>
-        <button type="submit" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Save changes</button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Saving...
+            </>
+          ) : (
+            "Save changes"
+          )}
+        </button>
       </form>
 
       {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}

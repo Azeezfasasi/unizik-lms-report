@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { PercentageRating } from "@/components/shared/PercentageRating";
 import { AcademicWeekGate } from "@/components/shared/AcademicWeekGate";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface FacultyOption {
   _id: string;
@@ -307,8 +308,15 @@ export default function NewSupervisorReportPage() {
         {message ? <p className="mt-4 text-sm text-rose-600">{message}</p> : null}
 
         <div className="mt-6 flex justify-end">
-          <button type="submit" disabled={loading || !curriculumId || !courseId || !weekId} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
-            {loading ? "Saving..." : "Submit supervisor report"}
+          <button type="submit" disabled={loading || !curriculumId || !courseId || !weekId} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
+            {loading ? (
+              <>
+                <Spinner className="h-4 w-4" />
+                Saving...
+              </>
+            ) : (
+              "Submit supervisor report"
+            )}
           </button>
         </div>
       </form>

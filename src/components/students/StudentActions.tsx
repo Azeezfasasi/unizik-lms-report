@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface StudentActionsProps {
   studentId: string;
@@ -52,9 +53,16 @@ export default function StudentActions({ studentId, initialStatus, redirectTo }:
         type="button"
         onClick={handleToggleStatus}
         disabled={saving || !isActive && !isSuspended}
-        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {saving ? `${actionLabel}...` : actionLabel}
+        {saving ? (
+          <>
+            <Spinner className="h-3.5 w-3.5" />
+            {actionLabel}...
+          </>
+        ) : (
+          actionLabel
+        )}
       </button>
       <DeleteResourceButton
         deleteUrl={`/api/students/${studentId}`}

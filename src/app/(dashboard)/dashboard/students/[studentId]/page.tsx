@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
 import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface FacultyOption {
   id: string;
@@ -34,6 +35,8 @@ export default function EditStudentPage({ params }: { params: Promise<{ studentI
   const [programLevel, setProgramLevel] = useState("");
   const [status, setStatus] = useState("ACTIVE");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [statusChanging, setStatusChanging] = useState(false);
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
@@ -82,42 +85,52 @@ export default function EditStudentPage({ params }: { params: Promise<{ studentI
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    setSubmitting(true);
     setMessage("Updating student...");
 
-    const response = await fetch(`/api/students/${studentId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ matricNumber, fullName, email, facultyId, departmentId, curriculumId, programLevel }),
-    });
+    try {
+      const response = await fetch(`/api/students/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matricNumber, fullName, email, facultyId, departmentId, curriculumId, programLevel }),
+      });
 
-    if (response.ok) {
-      setMessage("Student updated successfully.");
-      router.push(`/dashboard/students/${studentId}`);
-      router.refresh();
-      return;
+      if (response.ok) {
+        setMessage("Student updated successfully.");
+        router.push(`/dashboard/students/${studentId}`);
+        router.refresh();
+        return;
+      }
+
+      setMessage("Unable to update student right now.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("Unable to update student right now.");
   }
 
   async function handleStatusChange() {
     const nextStatus = status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+    setStatusChanging(true);
     setMessage(`${status === "ACTIVE" ? "Suspending" : "Activating"} student...`);
 
-    const response = await fetch(`/api/students/${studentId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: nextStatus }),
-    });
+    try {
+      const response = await fetch(`/api/students/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
 
-    if (response.ok) {
-      setStatus(nextStatus);
-      setMessage(`Student ${nextStatus.toLowerCase()} successfully.`);
-      router.refresh();
-      return;
+      if (response.ok) {
+        setStatus(nextStatus);
+        setMessage(`Student ${nextStatus.toLowerCase()} successfully.`);
+        router.refresh();
+        return;
+      }
+
+      setMessage("Unable to update student status right now.");
+    } finally {
+      setStatusChanging(false);
     }
-
-    setMessage("Unable to update student status right now.");
   }
 
   return (
@@ -207,7 +220,20 @@ export default function EditStudentPage({ params }: { params: Promise<{ studentI
             <input value={programLevel} onChange={(event) => setProgramLevel(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" />
           </div>
         </div>
-        <button type="submit" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Save changes</button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Saving...
+            </>
+          ) : (
+            "Save changes"
+          )}
+        </button>
       </form>
 
       <div className="mt-6 border-t border-slate-200 pt-6">
@@ -216,8 +242,10 @@ export default function EditStudentPage({ params }: { params: Promise<{ studentI
           <button
             type="button"
             onClick={() => handleStatusChange()}
-            className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50"
+            disabled={statusChanging}
+            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50 disabled:opacity-60"
           >
+            {statusChanging ? <Spinner className="h-3.5 w-3.5" /> : null}
             {status === "ACTIVE" ? "Suspend student" : "Activate student"}
           </button>
           <DeleteResourceButton deleteUrl={`/api/students/${studentId}`} resourceName="student" redirectTo="/dashboard/students" />

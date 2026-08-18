@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface AcademicSessionItem {
   _id: string;
@@ -15,6 +16,7 @@ export default function AcademicSessionsPage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [actingId, setActingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -65,35 +67,46 @@ export default function AcademicSessionsPage() {
 
   async function handleSetCurrent(id: string) {
     setMessage("");
-    const response = await fetch(`/api/academic-sessions/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isCurrent: true }),
-    });
+    setActingId(id);
+    try {
+      const response = await fetch(`/api/academic-sessions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isCurrent: true }),
+      });
 
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      setMessage(result.message || "Unable to update academic session.");
-      return;
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        setMessage(result.message || "Unable to update academic session.");
+        return;
+      }
+
+      await loadSessions();
+    } finally {
+      setActingId(null);
     }
-
-    loadSessions();
   }
 
   async function handleDelete(id: string) {
     const confirmDelete = window.confirm("Delete this academic session? This cannot be undone.");
     if (!confirmDelete) return;
 
-    const response = await fetch(`/api/academic-sessions/${id}`, { method: "DELETE" });
+    setMessage("");
+    setActingId(id);
+    try {
+      const response = await fetch(`/api/academic-sessions/${id}`, { method: "DELETE" });
 
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      setMessage(result.message || "Unable to delete academic session.");
-      return;
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        setMessage(result.message || "Unable to delete academic session.");
+        return;
+      }
+
+      setMessage("Academic session deleted successfully.");
+      await loadSessions();
+    } finally {
+      setActingId(null);
     }
-
-    setMessage("Academic session deleted successfully.");
-    loadSessions();
   }
 
   return (
@@ -117,9 +130,16 @@ export default function AcademicSessionsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {saving ? "Saving..." : "Add session"}
+          {saving ? (
+            <>
+              <Spinner className="h-3.5 w-3.5" />
+              Saving...
+            </>
+          ) : (
+            "Add session"
+          )}
         </button>
       </form>
 
@@ -134,15 +154,20 @@ export default function AcademicSessionsPage() {
           <button
             type="button"
             onClick={loadSessions}
-            className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
+            {loading ? <Spinner className="h-3.5 w-3.5" /> : null}
             Refresh
           </button>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {loading ? (
-            <p className="text-sm text-slate-500 md:col-span-2">Loading academic sessions…</p>
+            <p className="flex items-center gap-2 text-sm text-slate-500 md:col-span-2">
+              <Spinner className="h-3.5 w-3.5" />
+              Loading academic sessions…
+            </p>
           ) : sessions.length === 0 ? (
             <p className="text-sm text-slate-500 md:col-span-2">No academic sessions yet. Add one above to get started.</p>
           ) : (
@@ -159,16 +184,20 @@ export default function AcademicSessionsPage() {
                     <button
                       type="button"
                       onClick={() => handleSetCurrent(session._id)}
-                      className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      disabled={actingId === session._id}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
                     >
+                      {actingId === session._id ? <Spinner className="h-3.5 w-3.5" /> : null}
                       Set as current
                     </button>
                   ) : null}
                   <button
                     type="button"
                     onClick={() => handleDelete(session._id)}
-                    className="rounded-full border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                    disabled={actingId === session._id}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
                   >
+                    {actingId === session._id ? <Spinner className="h-3.5 w-3.5" /> : null}
                     Delete
                   </button>
                 </div>

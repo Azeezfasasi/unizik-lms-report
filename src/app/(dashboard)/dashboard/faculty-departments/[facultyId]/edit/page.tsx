@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function EditFacultyPage({ params }: { params: Promise<{ facultyId: string }> }) {
   const { facultyId } = use(params);
@@ -12,6 +13,7 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
   const [dean, setDean] = useState("");
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadFaculty() {
@@ -28,22 +30,27 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    setSubmitting(true);
     setMessage("Updating faculty...");
 
-    const response = await fetch(`/api/faculties/${facultyId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, code, dean, description }),
-    });
+    try {
+      const response = await fetch(`/api/faculties/${facultyId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, code, dean, description }),
+      });
 
-    if (response.ok) {
-      setMessage("Faculty updated successfully.");
-      router.push(`/dashboard/faculty-departments/${facultyId}`);
-      router.refresh();
-      return;
+      if (response.ok) {
+        setMessage("Faculty updated successfully.");
+        router.push(`/dashboard/faculty-departments/${facultyId}`);
+        router.refresh();
+        return;
+      }
+
+      setMessage("Unable to update faculty right now.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("Unable to update faculty right now.");
   }
 
   return (
@@ -71,7 +78,20 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
           <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" rows={4} />
         </div>
 
-        <button type="submit" className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Save changes</button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Saving...
+            </>
+          ) : (
+            "Save changes"
+          )}
+        </button>
       </form>
 
       {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}

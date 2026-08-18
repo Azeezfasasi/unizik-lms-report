@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface Props {
   assignmentId: string;
@@ -42,9 +43,16 @@ export default function AssignmentActions({ assignmentId }: Props) {
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
         >
-          {deleting ? "Deleting…" : "Yes"}
+          {deleting ? (
+            <>
+              <Spinner className="h-3 w-3" />
+              Deleting…
+            </>
+          ) : (
+            "Yes"
+          )}
         </button>
         <button
           onClick={() => { setConfirming(false); setError(""); }}

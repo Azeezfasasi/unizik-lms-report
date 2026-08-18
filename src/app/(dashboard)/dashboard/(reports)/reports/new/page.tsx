@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface StudentOption {
   id: string;
@@ -31,6 +32,7 @@ export default function NewReportPage() {
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
   const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadOptions() {
@@ -91,22 +93,27 @@ export default function NewReportPage() {
       return;
     }
 
+    setSubmitting(true);
     setMessage("Saving report...");
 
-    const response = await fetch("/api/reports", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentId, facultyId, curriculumId, notes, status }),
-    });
+    try {
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, facultyId, curriculumId, notes, status }),
+      });
 
-    if (response.ok) {
-      setMessage("Report saved successfully.");
-      router.push("/reports");
-      router.refresh();
-      return;
+      if (response.ok) {
+        setMessage("Report saved successfully.");
+        router.push("/reports");
+        router.refresh();
+        return;
+      }
+
+      setMessage("Unable to create report right now.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("Unable to create report right now.");
   }
 
   return (
@@ -176,10 +183,19 @@ export default function NewReportPage() {
         </div>
         <button
           type="submit"
-          disabled={loading || !studentId || !facultyId || !curriculumId}
-          className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+          disabled={loading || submitting || !studentId || !facultyId || !curriculumId}
+          className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {loading ? "Loading options..." : "Save report"}
+          {loading ? (
+            "Loading options..."
+          ) : submitting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              Saving...
+            </>
+          ) : (
+            "Save report"
+          )}
         </button>
       </form>
 

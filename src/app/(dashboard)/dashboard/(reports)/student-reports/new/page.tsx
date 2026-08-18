@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AcademicWeekGate } from "@/components/shared/AcademicWeekGate";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface StudentOption {
   _id: string;
@@ -391,8 +392,15 @@ export default function NewStudentReportPage() {
               <p className="mt-2 text-sm font-medium text-amber-700">Multiple student records found for your account. Contact the administrator to resolve duplicates.</p>
             ) : null}
           </div>
-          <button type="submit" disabled={loading || submitting || !studentId || !facultyId || !curriculumId || !courseId || !weekId || (isStudent && studentMatchCount !== 1)} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
-            {submitting ? "Saving..." : "Submit Report"}
+          <button type="submit" disabled={loading || submitting || !studentId || !facultyId || !curriculumId || !courseId || !weekId || (isStudent && studentMatchCount !== 1)} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
+            {submitting ? (
+              <>
+                <Spinner className="h-4 w-4" />
+                Saving...
+              </>
+            ) : (
+              "Submit Report"
+            )}
           </button>
         </div>
       </form>

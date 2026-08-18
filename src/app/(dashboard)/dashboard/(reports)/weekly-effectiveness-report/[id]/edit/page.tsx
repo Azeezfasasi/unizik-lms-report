@@ -5,6 +5,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PercentageRating } from "@/components/shared/PercentageRating";
 import { CircleArrowLeft } from "lucide-react";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface WeeklyEntry {
   weekId: string | { _id?: string; weekNumber?: number; startDate?: string; endDate?: string; label?: string };
@@ -178,8 +179,15 @@ export default function EditWeeklyEffectivenessReportPage({ params }: { params: 
           <button type="button" onClick={() => router.push(`/dashboard/weekly-effectiveness-report/${id}`)} className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             Cancel
           </button>
-          <button type="submit" disabled={saving} className="rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">
-            {saving ? "Saving..." : "Save changes"}
+          <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60">
+            {saving ? (
+              <>
+                <Spinner className="h-4 w-4" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
+            )}
           </button>
           {status !== "SUBMITTED" ? (
             <button

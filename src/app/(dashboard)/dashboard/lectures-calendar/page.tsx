@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/shared/Modal";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface CurriculumOption {
   _id: string;
@@ -46,6 +47,7 @@ export default function LecturesCalendarPage() {
   const [editDescription, setEditDescription] = useState("");
   const [editStatus, setEditStatus] = useState<"not_started" | "commenced">("not_started");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/curriculum")
@@ -195,26 +197,28 @@ export default function LecturesCalendarPage() {
     const confirmDelete = window.confirm("Delete this lecture schedule? This cannot be undone.");
     if (!confirmDelete) return;
 
-    setLoading(true);
+    setDeletingId(scheduleId);
     setMessage("");
 
-    const response = await fetch(`/api/lectures-calendar/${scheduleId}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await fetch(`/api/lectures-calendar/${scheduleId}`, {
+        method: "DELETE",
+      });
 
-    setLoading(false);
-
-    if (response.ok) {
-      setMessage("Lecture schedule deleted successfully.");
-      if (editingSchedule?._id === scheduleId) {
-        setEditingSchedule(null);
+      if (response.ok) {
+        setMessage("Lecture schedule deleted successfully.");
+        if (editingSchedule?._id === scheduleId) {
+          setEditingSchedule(null);
+        }
+        await loadSchedules(curriculumId);
+        return;
       }
-      loadSchedules(curriculumId);
-      return;
-    }
 
-    const errorText = await response.text();
-    setMessage(`Unable to delete schedule. ${errorText}`);
+      const errorText = await response.text();
+      setMessage(`Unable to delete schedule. ${errorText}`);
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   function startEdit(schedule: LectureScheduleItem) {
@@ -398,9 +402,16 @@ export default function LecturesCalendarPage() {
             <button
               type="submit"
               disabled={loading || !curriculumId || !courseId}
-              className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              {loading ? "Saving..." : "Create schedule"}
+              {loading ? (
+                <>
+                  <Spinner className="h-3.5 w-3.5" />
+                  Saving...
+                </>
+              ) : (
+                "Create schedule"
+              )}
             </button>
           </div>
         </form>
@@ -493,9 +504,16 @@ export default function LecturesCalendarPage() {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              {loading ? "Updating..." : "Save changes"}
+              {loading ? (
+                <>
+                  <Spinner className="h-3.5 w-3.5" />
+                  Updating...
+                </>
+              ) : (
+                "Save changes"
+              )}
             </button>
           </div>
         </form>
@@ -511,15 +529,20 @@ export default function LecturesCalendarPage() {
           <button
             type="button"
             onClick={() => loadSchedules(curriculumId)}
-            className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            disabled={loadingSchedules}
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
+            {loadingSchedules ? <Spinner className="h-3.5 w-3.5" /> : null}
             Refresh
           </button>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {loadingSchedules ? (
-            <p className="text-sm text-slate-500 md:col-span-2">Loading schedules…</p>
+            <p className="flex items-center gap-2 text-sm text-slate-500 md:col-span-2">
+              <Spinner className="h-3.5 w-3.5" />
+              Loading schedules…
+            </p>
           ) : schedules.length === 0 ? (
             <p className="text-sm text-slate-500 md:col-span-2">No schedules found for this curriculum.</p>
           ) : (
@@ -560,8 +583,10 @@ export default function LecturesCalendarPage() {
                   <button
                     type="button"
                     onClick={() => handleDelete(schedule._id)}
-                    className="rounded-full border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                    disabled={deletingId === schedule._id}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
                   >
+                    {deletingId === schedule._id ? <Spinner className="h-3.5 w-3.5" /> : null}
                     Delete
                   </button>
                 </div>

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Modal } from "@/components/shared/Modal";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface Props {
   deleteUrl: string;
@@ -46,7 +47,7 @@ export default function DeleteResourceButton({ deleteUrl, resourceName, redirect
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="inline-flex items-center justify-center rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:border-red-400 hover:bg-red-50 cursor-pointer"
+        className="inline-flex items-center justify-center gap-1.5 rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:border-red-400 hover:bg-red-50 cursor-pointer"
       >
         Delete
       </button>
@@ -70,7 +71,14 @@ export default function DeleteResourceButton({ deleteUrl, resourceName, redirect
           disabled={deleting}
           className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-60 cursor-pointer"
         >
-          {deleting ? "Deleting…" : "Yes, delete"}
+          {deleting ? (
+            <>
+              <Spinner className="h-3.5 w-3.5" />
+              Deleting…
+            </>
+          ) : (
+            "Yes, delete"
+          )}
         </button>
         <button
           type="button"

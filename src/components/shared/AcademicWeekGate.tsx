@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { Spinner } from "@/components/ui/Spinner";
 
 const WEEK_CREATOR_ROLES = ["ADMIN", "PG_COORDINATOR", "LMS_REP"];
 
@@ -173,7 +174,10 @@ export function AcademicWeekGate({
       </p>
 
       {loading ? (
-        <p className="mt-3 text-sm text-slate-500">Loading academic weeks…</p>
+        <p className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+          <Spinner className="h-3.5 w-3.5" />
+          Loading academic weeks…
+        </p>
       ) : weeks.length > 0 ? (
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
           <select
@@ -273,9 +277,16 @@ export function AcademicWeekGate({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
             >
-              {saving ? "Creating…" : "Create week"}
+              {saving ? (
+                <>
+                  <Spinner className="h-3.5 w-3.5" />
+                  Creating…
+                </>
+              ) : (
+                "Create week"
+              )}
             </button>
           </div>
         </form>

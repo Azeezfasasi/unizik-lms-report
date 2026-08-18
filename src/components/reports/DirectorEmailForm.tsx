@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 export function DirectorEmailForm({ academicSession, semester }: { academicSession: string; semester?: string }) {
   const [email, setEmail] = useState("");
@@ -66,9 +67,16 @@ export function DirectorEmailForm({ academicSession, semester }: { academicSessi
         <button
           type="submit"
           disabled={status === "sending"}
-          className="inline-flex items-center justify-center rounded-full bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {status === "sending" ? "Sending…" : "Send summary"}
+          {status === "sending" ? (
+            <>
+              <Spinner className="h-3.5 w-3.5" />
+              Sending…
+            </>
+          ) : (
+            "Send summary"
+          )}
         </button>
         {status === "sent" ? (
           <p className="text-sm font-medium text-emerald-700">Summary email queued successfully.</p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, use, useEffect, useState } from "react";
 import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
+import { Spinner } from "@/components/ui/Spinner";
 
 type LoadStatus = "loading" | "loaded" | "load-error";
 type SaveStatus = "idle" | "submitting" | "error";
@@ -219,10 +220,7 @@ export default function EditCurriculumPage({ params }: { params: Promise<{ curri
               >
                 {isSubmitting ? (
                   <>
-                    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 animate-spin">
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
-                      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                    </svg>
+                    <Spinner className="h-4 w-4" />
                     Updating...
                   </>
                 ) : (

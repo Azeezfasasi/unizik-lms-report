@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/shared/Modal";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface CurriculumOption {
   _id: string;
@@ -49,6 +50,7 @@ export default function AcademicWeeksPage() {
   const [editEndDate, setEditEndDate] = useState("");
   const [editLabel, setEditLabel] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/curriculum")
@@ -205,26 +207,28 @@ export default function AcademicWeeksPage() {
     const confirmDelete = window.confirm("Delete this academic week? This cannot be undone.");
     if (!confirmDelete) return;
 
-    setLoading(true);
+    setDeletingId(weekId);
     setMessage("");
 
-    const response = await fetch(`/api/academic-weeks/${weekId}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await fetch(`/api/academic-weeks/${weekId}`, {
+        method: "DELETE",
+      });
 
-    setLoading(false);
-
-    if (response.ok) {
-      setMessage("Academic week deleted successfully.");
-      if (editingWeek?._id === weekId) {
-        setEditingWeek(null);
+      if (response.ok) {
+        setMessage("Academic week deleted successfully.");
+        if (editingWeek?._id === weekId) {
+          setEditingWeek(null);
+        }
+        await loadWeeks(curriculumId, courseId, academicSession, semester);
+        return;
       }
-      loadWeeks(curriculumId, courseId, academicSession, semester);
-      return;
-    }
 
-    const errorText = await response.text();
-    setMessage(`Unable to delete week. ${errorText}`);
+      const errorText = await response.text();
+      setMessage(`Unable to delete week. ${errorText}`);
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   function startEdit(week: AcademicWeekItem) {
@@ -469,9 +473,16 @@ export default function AcademicWeeksPage() {
             <button
               type="submit"
               disabled={loading || !curriculumId || !courseId || !academicSession}
-              className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              {loading ? "Saving..." : "Add week"}
+              {loading ? (
+                <>
+                  <Spinner className="h-3.5 w-3.5" />
+                  Saving...
+                </>
+              ) : (
+                "Add week"
+              )}
             </button>
           </div>
         </form>
@@ -553,9 +564,16 @@ export default function AcademicWeeksPage() {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              {loading ? "Updating..." : "Save changes"}
+              {loading ? (
+                <>
+                  <Spinner className="h-3.5 w-3.5" />
+                  Updating...
+                </>
+              ) : (
+                "Save changes"
+              )}
             </button>
           </div>
         </form>
@@ -570,15 +588,20 @@ export default function AcademicWeeksPage() {
           <button
             type="button"
             onClick={() => loadWeeks(curriculumId, courseId, academicSession, semester)}
-            className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            disabled={loadingWeeks}
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
+            {loadingWeeks ? <Spinner className="h-3.5 w-3.5" /> : null}
             Refresh
           </button>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {loadingWeeks ? (
-            <p className="text-sm text-slate-500 md:col-span-2">Loading weeks…</p>
+            <p className="flex items-center gap-2 text-sm text-slate-500 md:col-span-2">
+              <Spinner className="h-3.5 w-3.5" />
+              Loading weeks…
+            </p>
           ) : weeks.length === 0 ? (
             <p className="text-sm text-slate-500 md:col-span-2">No academic weeks found for this filter.</p>
           ) : (
@@ -606,8 +629,10 @@ export default function AcademicWeeksPage() {
                   <button
                     type="button"
                     onClick={() => handleDelete(week._id)}
-                    className="rounded-full border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                    disabled={deletingId === week._id}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
                   >
+                    {deletingId === week._id ? <Spinner className="h-3.5 w-3.5" /> : null}
                     Delete
                   </button>
                 </div>

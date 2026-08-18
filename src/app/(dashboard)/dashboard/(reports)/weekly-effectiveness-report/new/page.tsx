@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface CurriculumOption {
   _id: string;
@@ -207,8 +208,15 @@ export default function NewWeeklyEffectivenessReportPage() {
         </label>
 
         <div className="mt-6 flex justify-end">
-          <button type="submit" disabled={loading || !weeks.length} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-400">
-            {loading ? "Submitting..." : "Submit Report"}
+          <button type="submit" disabled={loading || !weeks.length} className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-400">
+            {loading ? (
+              <>
+                <Spinner className="h-3.5 w-3.5" />
+                Submitting...
+              </>
+            ) : (
+              "Submit Report"
+            )}
           </button>
         </div>
       </form>

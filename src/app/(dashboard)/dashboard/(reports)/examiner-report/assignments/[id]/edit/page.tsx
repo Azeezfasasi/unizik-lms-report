@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface FacultyOption { id: string; name: string; }
 interface DepartmentOption { id: string; name: string; facultyId: string; }
@@ -186,7 +187,8 @@ export default function EditTeachingAssignmentPage() {
 
   if (pageLoading) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-slate-500">
+      <div className="flex h-48 items-center justify-center gap-2 text-sm text-slate-500">
+        <Spinner className="h-4 w-4" />
         Loading assignment…
       </div>
     );
@@ -333,10 +335,7 @@ export default function EditTeachingAssignmentPage() {
           >
             {submitting ? (
               <>
-                <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4 animate-spin">
-                  <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.6" strokeOpacity="0.3" />
-                  <path d="M14.5 8a6.5 6.5 0 00-6.5-6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
+                <Spinner className="h-4 w-4" />
                 Saving…
               </>
             ) : (

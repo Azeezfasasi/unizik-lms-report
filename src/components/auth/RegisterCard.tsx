@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface FacultyOption {
   id: string;
@@ -333,10 +334,7 @@ export default function RegisterCard() {
         >
           {submitting ? (
             <>
-              <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4 animate-spin">
-                <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.6" strokeOpacity="0.3" />
-                <path d="M14.5 8a6.5 6.5 0 00-6.5-6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
+              <Spinner className="h-4 w-4" />
               Creating your account...
             </>
           ) : (

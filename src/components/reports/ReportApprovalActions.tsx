@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ReportStatusBadge } from "@/components/reports/ReportStatusBadge";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface Props {
   reportId: string;
@@ -14,8 +15,9 @@ const ACTIONABLE_STATUSES = ["SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED"];
 
 export default function ReportApprovalActions({ reportId, status, reportType = "EXAMINER" }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"APPROVED" | "REJECTED" | null>(null);
   const [error, setError] = useState("");
+  const loading = pendingAction !== null;
 
   const statusLabel = status?.replace(/_/g, " ") ?? "Unknown";
   const canAct = status ? ACTIONABLE_STATUSES.includes(status) : false;
@@ -28,7 +30,7 @@ export default function ReportApprovalActions({ reportId, status, reportType = "
       : "/api/examiner-reports";
 
   async function updateStatus(nextStatus: "APPROVED" | "REJECTED") {
-    setLoading(true);
+    setPendingAction(nextStatus);
     setError("");
 
     try {
@@ -46,7 +48,7 @@ export default function ReportApprovalActions({ reportId, status, reportType = "
     } catch {
       setError("Unable to update report status right now.");
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   }
 
@@ -66,16 +68,18 @@ export default function ReportApprovalActions({ reportId, status, reportType = "
           type="button"
           onClick={() => updateStatus("APPROVED")}
           disabled={!canAct || loading}
-          className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
         >
+          {pendingAction === "APPROVED" ? <Spinner className="h-3.5 w-3.5" /> : null}
           Approve
         </button>
         <button
           type="button"
           onClick={() => updateStatus("REJECTED")}
           disabled={!canAct || loading}
-          className="inline-flex items-center justify-center rounded-full border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:border-red-400 hover:bg-red-50 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:border-red-400 hover:bg-red-50 disabled:opacity-60"
         >
+          {pendingAction === "REJECTED" ? <Spinner className="h-3.5 w-3.5" /> : null}
           Reject
         </button>
       </div>

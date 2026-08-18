@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { PercentageRating } from "@/components/shared/PercentageRating";
 import { AcademicWeekGate } from "@/components/shared/AcademicWeekGate";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface CurriculumOption {
   _id: string;
@@ -192,8 +193,15 @@ export default function NewCoordinatorReportPage() {
         {message ? <p className="mt-6 text-sm text-rose-600">{message}</p> : null}
 
         <div className="mt-6 flex justify-end">
-          <button type="submit" disabled={loading || !weekId} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">
-            {loading ? "Submitting..." : "Submit report"}
+          <button type="submit" disabled={loading || !weekId} className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">
+            {loading ? (
+              <>
+                <Spinner className="h-3.5 w-3.5" />
+                Submitting...
+              </>
+            ) : (
+              "Submit report"
+            )}
           </button>
         </div>
       </form>
