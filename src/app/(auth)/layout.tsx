@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.35em] text-teal-300">Unizik LMS</p>
               <h1 className="mt-4 text-3xl font-semibold sm:text-4xl">Secure access for reporting and recovery.</h1>
-              <p className="mt-4 max-w-md text-sm leading-7 text-slate-300">Use a single portal for login, registration, and password recovery with clear guidance and modern styling.</p>
+              <p className="mt-4 max-w-md text-sm leading-7 text-slate-300">Use a single portal for login and password recovery with clear guidance and modern styling.</p>
             </div>
             <div className="mt-10 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm text-slate-200">
               <p className="font-semibold text-white">What you get</p>
