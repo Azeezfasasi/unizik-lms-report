@@ -5,6 +5,8 @@ import { ExportButtons } from "@/components/reports/ExportButtons";
 import { notFound } from "next/navigation";
 import { CircleArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ReportDiscussionPanel } from "@/components/reports/ReportDiscussionPanel";
+import { ReportReviewActions } from "@/components/reports/ReportReviewActions";
 
 interface CoordinatorReportDetail {
   _id: string;
@@ -102,6 +104,8 @@ export default async function CoordinatorReportDetailPage({ params }: { params: 
         <h3 className="text-base font-semibold text-slate-900">Recommendations</h3>
         <p className="mt-2 text-sm text-slate-600">{r.recommendations || "None"}</p>
       </div>
+      <ReportReviewActions reportType="coordinator" reportId={r._id.toString()} status={r.status} />
+      <ReportDiscussionPanel reportType="coordinator" reportId={r._id.toString()} />
     </div>
   );
 }

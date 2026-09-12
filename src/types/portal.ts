@@ -1,4 +1,5 @@
-export type Role = "ADMIN" | "FACULTY_OFFICER" | "EXAMINER" | "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "SUPERVISOR" | "DIRECTOR";
+export type Role = "ADMIN" | "FACULTY_OFFICER" | "EXAMINER" | "STUDENT" | "LMS_REP" | "PG_COORDINATOR" | "SUPERVISOR" | "DIRECTOR" | "HOD" | "DEAN" | "SUB_DEAN" | "ASSOCIATE_PROVOST";
+export type AssociateProvostField = "HEALTH" | "SCIENCES" | "HUMANITIES";
 export type ReportStatus = "DRAFT" | "SUBMITTED";
 
 export interface Faculty {
@@ -77,5 +78,7 @@ export interface PortalUser {
   email: string;
   role: Role;
   facultyId?: string;
+  departmentId?: string;
+  associateProvostField?: AssociateProvostField;
   isActive: boolean;
 }

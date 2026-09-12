@@ -11,11 +11,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const session = await getServerSession(authOptions);
   const { id } = await params;
 
-  const report = await CoordinatorReport.findByIdAndUpdate(
-    id,
-    { status: "SUBMITTED", submittedAt: new Date() },
-    { new: true }
-  );
+  const role = session?.user?.role?.toUpperCase().trim();
+  if (!session?.user || !["ADMIN", "HOD", "PG_COORDINATOR"].includes(role ?? "")) {
+    return NextResponse.json({ message: "Only HODs and PG Coordinators may submit departmental reports." }, { status: 403 });
+  }
+  const existing = await CoordinatorReport.findById(id);
+  if (!existing) return NextResponse.json({ message: "Not found" }, { status: 404 });
+  if (role !== "ADMIN" && String(existing.preparedBy) !== session.user.id) {
+    return NextResponse.json({ message: "You may only submit your own report." }, { status: 403 });
+  }
+  const report = await CoordinatorReport.findByIdAndUpdate(id, { status: "SUBMITTED", submittedAt: new Date() }, { new: true });
 
   if (!report) return NextResponse.json({ message: "Not found" }, { status: 404 });
 

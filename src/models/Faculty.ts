@@ -4,6 +4,7 @@ const FacultySchema = new Schema(
   {
     name: { type: String, required: true, unique: true },
     code: { type: String, required: true, unique: true },
+    associateProvostField: { type: String, enum: ["HEALTH", "SCIENCES", "HUMANITIES"] },
     dean: { type: String },
     description: { type: String },
   },

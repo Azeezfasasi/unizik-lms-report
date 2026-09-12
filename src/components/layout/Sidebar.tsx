@@ -7,6 +7,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Summary } from "lucide-react";
 
+function normalizeRole(value?: string) {
+  return value?.normalize("NFKC").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState<boolean>(() => {
@@ -18,7 +22,7 @@ export function Sidebar() {
     }
   });
   const { data: session } = useSession();
-  const userRole = session?.user?.role as string | undefined;
+  const userRole = normalizeRole(session?.user?.role?.toString());
   const userName = session?.user?.name ?? "Guest";
   const userInitial = userName.charAt(0).toUpperCase();
 
@@ -152,7 +156,7 @@ export function Sidebar() {
     const roles = link.roles;
     if (!roles) return true;
     if (!userRole) return false;
-    return roles.includes(userRole);
+    return roles.some((role) => normalizeRole(role) === userRole);
   });
 
   // Group links by section while preserving original order within each group.

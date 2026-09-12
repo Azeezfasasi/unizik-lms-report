@@ -13,6 +13,10 @@ const ROLE_OPTIONS = [
   { value: "PG_COORDINATOR", label: "PG coordinator" },
   { value: "SUPERVISOR", label: "Supervisor" },
   { value: "DIRECTOR", label: "Director" },
+  { value: "HOD", label: "Head of Department" },
+  { value: "DEAN", label: "Dean" },
+  { value: "SUB_DEAN", label: "Sub-Dean" },
+  { value: "ASSOCIATE_PROVOST", label: "Associate Provost" },
 ];
 
 export function UserFilters() {

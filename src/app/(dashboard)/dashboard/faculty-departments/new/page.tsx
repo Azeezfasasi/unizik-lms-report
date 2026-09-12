@@ -12,6 +12,7 @@ export default function NewFacultyPage() {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [dean, setDean] = useState("");
+  const [associateProvostField, setAssociateProvostField] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -30,7 +31,7 @@ export default function NewFacultyPage() {
       const response = await fetch("/api/faculties", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, code, dean, description }),
+        body: JSON.stringify({ name, code, dean, description, associateProvostField: associateProvostField || undefined }),
       });
 
       if (!response.ok) {
@@ -70,6 +71,16 @@ export default function NewFacultyPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-600">Faculty</p>
             <h2 className="mt-0.5 text-xl font-semibold text-slate-900 sm:text-2xl">Create new faculty</h2>
             <p className="mt-1 text-sm text-slate-500">Add a new faculty to the academic structure.</p>
+          </div>
+
+          <div>
+            <label htmlFor="associate-provost-field" className="mb-1.5 block text-sm font-medium text-slate-700">Associate Provost field</label>
+            <select id="associate-provost-field" value={associateProvostField} onChange={(event) => setAssociateProvostField(event.target.value)} disabled={isSubmitting} className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm">
+              <option value="">Select field</option>
+              <option value="HEALTH">Health</option>
+              <option value="SCIENCES">Sciences</option>
+              <option value="HUMANITIES">Humanities</option>
+            </select>
           </div>
         </div>
 

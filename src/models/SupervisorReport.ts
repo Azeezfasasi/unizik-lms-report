@@ -8,6 +8,7 @@ const SupervisorReportSchema = new Schema(
     courseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
     weekId: { type: Schema.Types.ObjectId, ref: "AcademicWeek", required: true },
     submittedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    reportFrequency: { type: String, enum: ["WEEKLY"], default: "WEEKLY" },
     academicSession: { type: String, required: true },
     semester: { type: String, enum: ["FIRST", "SECOND"], required: true },
     studentResponseToLecturesPct: { type: Number, min: 0, max: 100, required: true },
@@ -15,6 +16,10 @@ const SupervisorReportSchema = new Schema(
     studentResponseToQuizPct: { type: Number, min: 0, max: 100, required: true },
     studentResponseToCourseworkPct: { type: Number, min: 0, max: 100, required: true },
     comments: { type: String },
+    projectTitle: { type: String },
+    milestone: { type: String },
+    progressSummary: { type: String },
+    studentId: { type: Schema.Types.ObjectId, ref: "Student" },
     status: {
       type: String,
       enum: ["DRAFT", "SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED", "APPROVED", "REJECTED"],

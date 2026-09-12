@@ -7,11 +7,17 @@ declare module "next-auth" {
     user: {
       id: string;
       role: string;
+      facultyId?: string;
+      departmentId?: string;
+      associateProvostField?: string;
     } & DefaultSession["user"];
   }
 
   interface User {
     role?: string;
+    facultyId?: string;
+    departmentId?: string;
+    associateProvostField?: string;
   }
 }
 

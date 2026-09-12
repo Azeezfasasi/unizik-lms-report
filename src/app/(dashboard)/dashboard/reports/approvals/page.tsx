@@ -12,7 +12,7 @@ import {
 } from "@/lib/data/portal";
 import ReportApprovalActions from "@/components/reports/ReportApprovalActions";
 
-const APPROVAL_ROLES = ["ADMIN", "PG_COORDINATOR"];
+const APPROVAL_ROLES = ["ADMIN", "PG_COORDINATOR", "", "DEAN", "SUB_DEAN"];
 const STATUS_OPTIONS = ["ALL", "DRAFT", "SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED", "APPROVED", "REJECTED"];
 const TYPE_OPTIONS = ["ALL", "EXAMINER", "LMS_REP", "STUDENT"];
 

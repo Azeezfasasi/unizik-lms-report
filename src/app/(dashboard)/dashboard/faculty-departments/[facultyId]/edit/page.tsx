@@ -11,6 +11,7 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [dean, setDean] = useState("");
+  const [associateProvostField, setAssociateProvostField] = useState("");
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -22,6 +23,7 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
       setName(data.name || "");
       setCode(data.code || "");
       setDean(data.dean || "");
+      setAssociateProvostField(data.associateProvostField || "");
       setDescription(data.description || "");
     }
 
@@ -37,7 +39,7 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
       const response = await fetch(`/api/faculties/${facultyId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, code, dean, description }),
+        body: JSON.stringify({ name, code, dean, description, associateProvostField: associateProvostField || undefined }),
       });
 
       if (response.ok) {
@@ -64,6 +66,15 @@ export default function EditFacultyPage({ params }: { params: Promise<{ facultyI
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Name</label>
           <input value={name} onChange={(event) => setName(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" />
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-slate-700">Associate Provost field</label>
+          <select value={associateProvostField} onChange={(event) => setAssociateProvostField(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+            <option value="">Select field</option>
+            <option value="HEALTH">HEALTH</option>
+            <option value="SCIENCES">SCIENCES</option>
+            <option value="HUMANITIES">HUMANITIES</option>
+          </select>
         </div>
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Code</label>

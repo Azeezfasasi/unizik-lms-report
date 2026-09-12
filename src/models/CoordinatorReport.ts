@@ -6,6 +6,8 @@ const CoordinatorReportSchema = new Schema(
     weekId: { type: Schema.Types.ObjectId, ref: "AcademicWeek", required: true },
     preparedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     departmentId: { type: Schema.Types.ObjectId, ref: "Department" },
+    reportFrequency: { type: String, enum: ["WEEKLY"], default: "WEEKLY" },
+    reportRole: { type: String, enum: ["HOD", "PG_COORDINATOR"], default: "PG_COORDINATOR" },
     academicSession: { type: String, required: true },
     semester: { type: String, enum: ["FIRST", "SECOND"], required: true },
     totalStudents: { type: Number, default: 0 },
@@ -21,7 +23,7 @@ const CoordinatorReportSchema = new Schema(
     },
     examTimetableStatus: { type: String },
     recommendations: { type: String },
-    status: { type: String, enum: ["DRAFT", "SUBMITTED"], default: "DRAFT" },
+    status: { type: String, enum: ["DRAFT", "SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED", "APPROVED", "REJECTED"], default: "DRAFT" },
     submittedAt: { type: Date },
   },
   { timestamps: true }

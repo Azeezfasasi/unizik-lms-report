@@ -5,6 +5,8 @@ import { ExportButtons } from "@/components/reports/ExportButtons";
 import Link from "next/link";
 import { CircleArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
+import { ReportDiscussionPanel } from "@/components/reports/ReportDiscussionPanel";
+import { ReportReviewActions } from "@/components/reports/ReportReviewActions";
 
 export default async function SupervisorReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -79,6 +81,8 @@ export default async function SupervisorReportDetailPage({ params }: { params: P
         <h3 className="text-base font-semibold text-slate-900">Comments</h3>
         <p className="mt-3 text-sm leading-7 text-slate-700">{r.comments || "No comments provided."}</p>
       </div>
+      <ReportReviewActions reportType="supervisor" reportId={r._id.toString()} status={r.status ?? "DRAFT"} />
+      <ReportDiscussionPanel reportType="supervisor" reportId={r._id.toString()} />
     </div>
   );
 }

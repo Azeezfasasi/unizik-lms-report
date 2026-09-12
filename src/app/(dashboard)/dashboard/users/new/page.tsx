@@ -18,6 +18,10 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
   LMS_REP: "Submits LMS representative reports and monitors course delivery.",
   PG_COORDINATOR: "Prepares postgraduate course coordinator reports and oversight metrics.",
   SUPERVISOR: "Reviews student response metrics and departmental teaching quality.",
+  HOD: "Submits weekly comprehensive departmental activity reports.",
+  DEAN: "Reviews and approves reports from every department in an assigned faculty.",
+  SUB_DEAN: "Reviews and approves reports from every department in an assigned faculty.",
+  ASSOCIATE_PROVOST: "Views approved, pending, and rejected reports within an assigned field.",
 };
 
 function SelectChevron() {
@@ -68,6 +72,8 @@ export default function NewUserPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("STUDENT");
   const [facultyId, setFacultyId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [associateProvostField, setAssociateProvostField] = useState("");
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"info" | "success" | "error">("info");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -148,6 +154,8 @@ export default function NewUserPage() {
         password,
         role,
         facultyId: facultyId || undefined,
+        departmentId: departmentId || undefined,
+        associateProvostField: associateProvostField || undefined,
       }),
     });
 
@@ -305,6 +313,11 @@ export default function NewUserPage() {
                       <option value="LMS_REP">LMS Rep</option>
                       <option value="PG_COORDINATOR">PG Coordinator</option>
                       <option value="SUPERVISOR">Supervisor</option>
+                      <option value="DIRECTOR">Director</option>
+                      <option value="HOD">Head of Department</option>
+                      <option value="DEAN">Dean</option>
+                      <option value="SUB_DEAN">Sub-Dean</option>
+                      <option value="ASSOCIATE_PROVOST">Associate Provost</option>
                     </select>
                     <SelectChevron />
                   </div>
@@ -336,6 +349,21 @@ export default function NewUserPage() {
                     <SelectChevron />
                   </div>
                   <p className="mt-1.5 text-xs text-slate-500">Optional — required only for faculty-scoped roles.</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Department ID</label>
+                  <input value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} className={`${baseInput} ${okInput}`} placeholder="Optional department assignment" />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Associate Provost field</label>
+                  <select value={associateProvostField} onChange={(event) => setAssociateProvostField(event.target.value)} className={`${baseInput} ${okInput} appearance-none`}>
+                    <option value="">No field</option>
+                    <option value="HEALTH">Health</option>
+                    <option value="SCIENCES">Sciences</option>
+                    <option value="HUMANITIES">Humanities</option>
+                  </select>
                 </div>
               </div>
             </section>

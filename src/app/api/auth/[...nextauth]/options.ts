@@ -102,6 +102,9 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
+          facultyId: user.facultyId ? String(user.facultyId) : undefined,
+          departmentId: user.departmentId ? String(user.departmentId) : undefined,
+          associateProvostField: user.associateProvostField,
         };
       },
     }),
@@ -119,6 +122,9 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.email = user.email;
         token.name = user.name;
+        token.facultyId = user.facultyId;
+        token.departmentId = user.departmentId;
+        token.associateProvostField = user.associateProvostField;
       }
       return token;
     },
@@ -128,6 +134,9 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.email = token.email as string;
         session.user.name = (token.name as string) ?? session.user.name;
+        session.user.facultyId = token.facultyId as string | undefined;
+        session.user.departmentId = token.departmentId as string | undefined;
+        session.user.associateProvostField = token.associateProvostField as string | undefined;
       }
       return session;
     },

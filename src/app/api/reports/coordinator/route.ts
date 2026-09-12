@@ -26,13 +26,24 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   await connectDB();
   const session = await getServerSession(authOptions);
+  const role = session?.user?.role?.toUpperCase().trim();
+  if (!session?.user || !["ADMIN", "HOD", "PG_COORDINATOR"].includes(role ?? "")) {
+    return NextResponse.json({ message: "Only HODs and PG Coordinators may submit departmental reports." }, { status: 403 });
+  }
   const body = await req.json();
 
   if (!body.weekId) {
     return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
   }
 
-  const report = await CoordinatorReport.create(body);
+  const report = await CoordinatorReport.create({
+    ...body,
+    preparedBy: session.user.id,
+    reportRole: role === "HOD" ? "HOD" : "PG_COORDINATOR",
+    reportFrequency: "WEEKLY",
+    status: body.status === "SUBMITTED" ? "SUBMITTED" : "DRAFT",
+    submittedAt: body.status === "SUBMITTED" ? new Date() : undefined,
+  });
   notifyReportEvent("coordinator", report._id.toString(), "created").catch(() => {});
 
   await logAudit({

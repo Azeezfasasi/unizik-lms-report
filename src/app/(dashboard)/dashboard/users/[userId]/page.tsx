@@ -13,6 +13,8 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("STUDENT");
   const [facultyId, setFacultyId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [associateProvostField, setAssociateProvostField] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,6 +26,8 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
       setEmail(data.email || "");
       setRole(data.role || "STUDENT");
       setFacultyId(data.facultyId || "");
+      setDepartmentId(data.departmentId || "");
+      setAssociateProvostField(data.associateProvostField || "");
     }
 
     loadUser();
@@ -35,7 +39,7 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
     setMessage("Updating user...");
 
     try {
-      const payload: Record<string, string> = { name, email, role, facultyId };
+      const payload: Record<string, string> = { name, email, role, facultyId, departmentId, associateProvostField };
       if (password.trim()) {
         payload.password = password;
       }
@@ -92,12 +96,32 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
               <option value="LMS_REP">LMS REP</option>
               <option value="PG_COORDINATOR">PG COORDINATOR</option>
               <option value="SUPERVISOR">SUPERVISOR</option>
+              <option value="DIRECTOR">DIRECTOR</option>
+              <option value="HOD">HOD</option>
+              <option value="DEAN">DEAN</option>
+              <option value="SUB_DEAN">SUB_DEAN</option>
+              <option value="ASSOCIATE_PROVOST">ASSOCIATE_PROVOST</option>
             </select>
           </div>
         </div>
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Faculty ID</label>
           <input value={facultyId} onChange={(event) => setFacultyId(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" placeholder="Optional" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">Department ID</label>
+            <input value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" placeholder="Optional" />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">Associate Provost field</label>
+            <select value={associateProvostField} onChange={(event) => setAssociateProvostField(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm">
+              <option value="">No field</option>
+              <option value="HEALTH">HEALTH</option>
+              <option value="SCIENCES">SCIENCES</option>
+              <option value="HUMANITIES">HUMANITIES</option>
+            </select>
+          </div>
         </div>
         <button
           type="submit"

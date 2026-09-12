@@ -15,6 +15,7 @@ const CourseRepReportSchema = new Schema(
     curriculumId: { type: Schema.Types.ObjectId, ref: "Curriculum", required: true },
     weekId: { type: Schema.Types.ObjectId, ref: "AcademicWeek", required: true },
     submittedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    reportFrequency: { type: String, enum: ["WEEKLY"], default: "WEEKLY" },
     academicSession: { type: String, required: true },
     semester: { type: String, enum: ["FIRST", "SECOND"], required: true },
     lectureCompliance: { type: [LectureComplianceSchema], default: [] },

@@ -1034,3 +1034,40 @@ export async function getDirectorSummary(academicSession?: string, semester?: "F
     };
   }
 }
+
+export async function getAssociateProvostSummary(field: "HEALTH" | "SCIENCES" | "HUMANITIES", academicSession?: string) {
+  await connectDB();
+  const faculties = await Faculty.find({ associateProvostField: field }).select("_id name").lean();
+  const facultyIds = faculties.map((item) => item._id);
+  const departments = await Department.find({ facultyId: { $in: facultyIds } }).select("_id facultyId name").lean();
+  const departmentIds = departments.map((item) => item._id);
+  const curriculums = await Curriculum.find({ departmentId: { $in: departmentIds } }).select("_id").lean();
+  const curriculumIds = curriculums.map((item) => item._id);
+  const courses = await Course.find({ curriculumId: { $in: curriculumIds } }).select("_id").lean();
+  const courseIds = courses.map((item) => item._id);
+  const sessionFilter = academicSession ? { academicSession } : {};
+
+  const [student, lms, coordinator, supervisor, examiner] = await Promise.all([
+    StudentReport.find({ ...sessionFilter, facultyId: { $in: facultyIds } }).select("status").lean(),
+    CourseRepReport.find({ ...sessionFilter, courseId: { $in: courseIds } }).select("status").lean(),
+    CoordinatorReport.find({ ...sessionFilter, departmentId: { $in: departmentIds } }).select("status").lean(),
+    SupervisorReport.find({ ...sessionFilter, facultyId: { $in: facultyIds } }).select("status").lean(),
+    ExaminerReport.find({ ...sessionFilter, facultyId: { $in: facultyIds } }).select("status").lean(),
+  ]);
+
+  const reports = [student, lms, coordinator, supervisor, examiner].flat();
+  const statusCounts = reports.reduce<Record<string, number>>((counts, report: { status?: string }) => {
+    const status = report.status ?? "SUBMITTED";
+    counts[status] = (counts[status] ?? 0) + 1;
+    return counts;
+  }, {});
+
+  return {
+    field,
+    academicSession: academicSession ?? "All sessions",
+    faculties: faculties.map((faculty) => ({ id: String(faculty._id), name: faculty.name })),
+    departmentCount: departments.length,
+    totalReports: reports.length,
+    statusCounts,
+  };
+}

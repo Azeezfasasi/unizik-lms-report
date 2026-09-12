@@ -7,6 +7,8 @@ import DeleteResourceButton from "@/components/shared/DeleteResourceButton";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CircleArrowLeft, Edit2 } from "lucide-react";
+import { ReportDiscussionPanel } from "@/components/reports/ReportDiscussionPanel";
+import { ReportReviewActions } from "@/components/reports/ReportReviewActions";
 
 export default async function LmsRepReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -110,6 +112,8 @@ export default async function LmsRepReportDetailPage({ params }: { params: Promi
           <p className="mt-2 text-sm text-slate-600">{r.issues}</p>
         </div>
       ) : null}
+      <ReportReviewActions reportType="lms-rep" reportId={r._id.toString()} status={r.status ?? "DRAFT"} />
+      <ReportDiscussionPanel reportType="lms-rep" reportId={r._id.toString()} />
     </div>
   );
 }

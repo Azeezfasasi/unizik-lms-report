@@ -32,3 +32,4 @@ import "@/models/SupervisorReport";
 import "@/models/TeachingAssignment";
 import "@/models/User";
 import "@/models/WeeklyEffectivenessReport";
+import "@/models/ReportDiscussion";
