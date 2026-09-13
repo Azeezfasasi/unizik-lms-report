@@ -1,5 +1,6 @@
 const TONE: Record<string, string> = {
   DRAFT: "bg-slate-100 text-slate-600",
+  PENDING: "bg-violet-100 text-violet-700",
   SUBMITTED: "bg-sky-100 text-sky-700",
   UNDER_REVIEW: "bg-amber-100 text-amber-700",
   REVISION_REQUESTED: "bg-orange-100 text-orange-700",

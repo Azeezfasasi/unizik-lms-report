@@ -3,10 +3,23 @@ import { connectDB } from "@/lib/db/connectDB";
 import CoordinatorReport from "@/models/CoordinatorReport";
 import { ReportStatusBadge } from "@/components/reports/ReportStatusBadge";
 import { Plus } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import Faculty from "@/models/Faculty";
+import Department from "@/models/Department";
 
 export default async function PgCoordinatorReportListPage() {
   await connectDB();
-  const reports = await CoordinatorReport.find()
+  const session = await getServerSession(authOptions);
+  const role = session?.user?.role?.toUpperCase().trim();
+  const associateProvostField = session?.user?.associateProvostField;
+  let filter = {};
+  if (role === "ASSOCIATE_PROVOST" && associateProvostField) {
+    const faculties = await Faculty.find({ associateProvostField }).select("_id").lean();
+    const departments = await Department.find({ facultyId: { $in: faculties.map((faculty) => faculty._id) } }).select("_id").lean();
+    filter = { departmentId: { $in: departments.map((department) => department._id) } };
+  }
+  const reports = await CoordinatorReport.find(filter)
     .populate("curriculumId", "programName")
     .populate("preparedBy", "name")
     .sort({ createdAt: -1 })
@@ -19,9 +32,9 @@ export default async function PgCoordinatorReportListPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-600">Reporting</p>
           <h2 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">PG Coordinator&apos;s Report</h2>
         </div>
-        <Link href="/dashboard/pg-course-report/new" className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
+        {role !== "ASSOCIATE_PROVOST" ? <Link href="/dashboard/pg-course-report/new" className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
           <Plus className="w-4 h-4" /> Create Report
-        </Link>
+        </Link> : null}
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

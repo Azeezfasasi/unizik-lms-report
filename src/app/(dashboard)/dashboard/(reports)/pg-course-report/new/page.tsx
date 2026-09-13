@@ -24,6 +24,13 @@ interface CoordinatorSummary {
   };
 }
 
+const RESPONSE_METRICS = [
+  ["studentLectureResponse", "Students' response to lectures"],
+  ["studentAssignmentResponse", "Students' response to assignments"],
+  ["studentQuizResponse", "Students' response to quizzes"],
+  ["studentCourseworkResponse", "Students' response to course work"],
+] as const;
+
 export default function NewCoordinatorReportPage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -35,6 +42,19 @@ export default function NewCoordinatorReportPage() {
   const [recommendations, setRecommendations] = useState("");
   const [examTimetableStatus, setExamTimetableStatus] = useState("Pending release");
   const [lecturerResponseRate, setLecturerResponseRate] = useState(60);
+  const [responseMetrics, setResponseMetrics] = useState<Record<string, number>>({
+    studentLectureResponseLow: 0, studentLectureResponseAverage: 0, studentLectureResponseHigh: 0,
+    studentAssignmentResponseLow: 0, studentAssignmentResponseAverage: 0, studentAssignmentResponseHigh: 0,
+    studentQuizResponseLow: 0, studentQuizResponseAverage: 0, studentQuizResponseHigh: 0,
+    studentCourseworkResponseLow: 0, studentCourseworkResponseAverage: 0, studentCourseworkResponseHigh: 0,
+  });
+  const [additionalMetrics, setAdditionalMetrics] = useState({
+    weeklySyllabusCoveredRate: 0,
+    courseMaterialsReleasedRate: 0,
+    examReadinessRate: 0,
+    supervisorActivesRate: 0,
+    studentProgressionRate: 0,
+  });
   const [misconductSeverity, setMisconductSeverity] = useState("NONE");
   const [generalComments, setGeneralComments] = useState("");
   const [summary, setSummary] = useState<CoordinatorSummary | null>(null);
@@ -78,6 +98,8 @@ export default function NewCoordinatorReportPage() {
       totalCourses: summary?.totalCourses ?? 0,
       lectureComplianceRate: summary?.lectureComplianceRate ?? 0,
       lecturerResponseRate,
+      ...responseMetrics,
+      ...additionalMetrics,
       misconductSeverity,
       generalComments,
       examinerReportsSummary: summary?.examinerReportsSummary ?? { submitted: 0, approved: 0, pending: 0 },
@@ -171,6 +193,28 @@ export default function NewCoordinatorReportPage() {
                   <option value="SERIOUS">Serious</option>
                 </select>
               </label>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              {RESPONSE_METRICS.map(([prefix, label]) => (
+                <fieldset key={prefix} className="space-y-3 rounded-2xl border border-slate-200 p-4">
+                  <legend className="px-1 text-sm font-semibold text-slate-900">{label}</legend>
+                  {(["Low", "Average", "High"] as const).map((level) => {
+                    const key = `${prefix}${level}`;
+                    return <PercentageRating key={key} label={level} value={responseMetrics[key] ?? 0} onChange={(value) => setResponseMetrics((current) => ({ ...current, [key]: value }))} />;
+                  })}
+                </fieldset>
+              ))}
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              {([
+                ["weeklySyllabusCoveredRate", "Lecturer's weekly syllabus covered"],
+                ["courseMaterialsReleasedRate", "Course materials released"],
+                ["examReadinessRate", "Exam readiness"],
+                ["supervisorActivesRate", "Supervisor's actives"],
+                ["studentProgressionRate", "Student progression"],
+              ] as const).map(([key, label]) => <PercentageRating key={key} label={`${label} (%)`} value={additionalMetrics[key]} onChange={(value) => setAdditionalMetrics((current) => ({ ...current, [key]: value }))} />)}
             </div>
 
             <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">

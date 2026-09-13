@@ -5,7 +5,7 @@ import { resolveReportContext } from "@/lib/auth/reportContext";
 import { REPORT_MODEL_MAP, type ReportKey } from "@/lib/reports/reportRegistry";
 import { logAudit } from "@/lib/audit/logAudit";
 
-const REVIEW_STATUSES = ["UNDER_REVIEW", "APPROVED", "REJECTED", "REVISION_REQUESTED"] as const;
+const REVIEW_STATUSES = ["PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED", "REVISION_REQUESTED"] as const;
 const VALID_TYPES = new Set(Object.keys(REPORT_MODEL_MAP));
 
 export async function PATCH(

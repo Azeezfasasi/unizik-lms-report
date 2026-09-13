@@ -13,7 +13,7 @@ export function ReportReviewActions({ reportType, reportId, status }: { reportTy
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  if (!canReview || !["SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED"].includes(status)) return null;
+  if (!canReview || !["PENDING", "SUBMITTED", "UNDER_REVIEW", "REVISION_REQUESTED"].includes(status)) return null;
 
   async function updateStatus(nextStatus: string) {
     if (["REJECTED", "REVISION_REQUESTED"].includes(nextStatus) && !comment.trim()) {
@@ -44,6 +44,7 @@ export function ReportReviewActions({ reportType, reportId, status }: { reportTy
       <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={3} placeholder="Required for rejection or revision request" className="mt-4 w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm" />
       {error ? <p className="mt-2 text-sm text-rose-600">{error}</p> : null}
       <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={() => updateStatus("PENDING")} disabled={saving} className="rounded-full border border-violet-300 bg-white px-4 py-2 text-sm font-semibold text-violet-700 disabled:opacity-50">Mark pending</button>
         <button type="button" onClick={() => updateStatus("UNDER_REVIEW")} disabled={saving} className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Start review</button>
         <button type="button" onClick={() => updateStatus("APPROVED")} disabled={saving} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Approve</button>
         <button type="button" onClick={() => updateStatus("REVISION_REQUESTED")} disabled={saving} className="rounded-full border border-amber-400 bg-white px-4 py-2 text-sm font-semibold text-amber-800 disabled:opacity-50">Request revision</button>

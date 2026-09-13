@@ -7,6 +7,10 @@ import { CircleArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { ReportDiscussionPanel } from "@/components/reports/ReportDiscussionPanel";
 import { ReportReviewActions } from "@/components/reports/ReportReviewActions";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { canViewAssociateProvostReport } from "@/lib/auth/reportAccess";
+import { resolveReportContext } from "@/lib/auth/reportContext";
 
 interface CoordinatorReportDetail {
   _id: string;
@@ -19,6 +23,23 @@ interface CoordinatorReportDetail {
   totalCourses?: number;
   lectureComplianceRate?: number;
   lecturerResponseRate?: number;
+  studentLectureResponseLow?: number;
+  studentLectureResponseAverage?: number;
+  studentLectureResponseHigh?: number;
+  studentAssignmentResponseLow?: number;
+  studentAssignmentResponseAverage?: number;
+  studentAssignmentResponseHigh?: number;
+  studentQuizResponseLow?: number;
+  studentQuizResponseAverage?: number;
+  studentQuizResponseHigh?: number;
+  studentCourseworkResponseLow?: number;
+  studentCourseworkResponseAverage?: number;
+  studentCourseworkResponseHigh?: number;
+  weeklySyllabusCoveredRate?: number;
+  courseMaterialsReleasedRate?: number;
+  examReadinessRate?: number;
+  supervisorActivesRate?: number;
+  studentProgressionRate?: number;
   misconductSeverity?: "NONE" | "MINOR" | "SERIOUS";
   generalComments?: string;
   examinerReportsSummary?: { submitted?: number; approved?: number; pending?: number };
@@ -36,6 +57,13 @@ export default async function CoordinatorReportDetailPage({ params }: { params: 
     .lean();
 
   if (!report) notFound();
+  const session = await getServerSession(authOptions);
+  const role = session?.user?.role?.toUpperCase().trim();
+  const associateProvostField = session?.user?.associateProvostField;
+  if (role === "ASSOCIATE_PROVOST") {
+    const context = await resolveReportContext("coordinator", report as unknown as Record<string, unknown>);
+    if (!canViewAssociateProvostReport(role, associateProvostField, context.associateProvostField)) notFound();
+  }
   const r = report as CoordinatorReportDetail;
 
   return (
@@ -47,6 +75,25 @@ export default async function CoordinatorReportDetailPage({ params }: { params: 
           Back to PG Cordinator&apos;s Reports
         </Link>
       </div>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h3 className="text-base font-semibold text-slate-900">Student responses</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {([
+            ["Lectures", "studentLectureResponse"],
+            ["Assignments", "studentAssignmentResponse"],
+            ["Quizzes", "studentQuizResponse"],
+            ["Course work", "studentCourseworkResponse"],
+          ] as const).map(([label, prefix]) => <div key={prefix} className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600"><p className="font-semibold text-slate-900">{label}</p><p className="mt-2">Low: {(r[`${prefix}Low` as keyof CoordinatorReportDetail] as number) ?? 0}%</p><p>Average: {(r[`${prefix}Average` as keyof CoordinatorReportDetail] as number) ?? 0}%</p><p>High: {(r[`${prefix}High` as keyof CoordinatorReportDetail] as number) ?? 0}%</p></div>)}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h3 className="text-base font-semibold text-slate-900">Operational indicators</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {([["Weekly syllabus covered", "weeklySyllabusCoveredRate"], ["Course materials released", "courseMaterialsReleasedRate"], ["Exam readiness", "examReadinessRate"], ["Supervisor's actives", "supervisorActivesRate"], ["Student progression", "studentProgressionRate"]] as const).map(([label, key]) => <div key={key} className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-2xl font-semibold text-slate-900">{r[key] ?? 0}%</p></div>)}
+        </div>
+      </section>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">

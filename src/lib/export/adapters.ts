@@ -60,6 +60,23 @@ type ReportLike = {
   totalStudents?: number;
   totalCourses?: number;
   lectureComplianceRate?: number;
+  studentLectureResponseLow?: number;
+  studentLectureResponseAverage?: number;
+  studentLectureResponseHigh?: number;
+  studentAssignmentResponseLow?: number;
+  studentAssignmentResponseAverage?: number;
+  studentAssignmentResponseHigh?: number;
+  studentQuizResponseLow?: number;
+  studentQuizResponseAverage?: number;
+  studentQuizResponseHigh?: number;
+  studentCourseworkResponseLow?: number;
+  studentCourseworkResponseAverage?: number;
+  studentCourseworkResponseHigh?: number;
+  weeklySyllabusCoveredRate?: number;
+  courseMaterialsReleasedRate?: number;
+  examReadinessRate?: number;
+  supervisorActivesRate?: number;
+  studentProgressionRate?: number;
   examinerReportsSummary?: { submitted?: number; approved?: number; pending?: number };
   examTimetableStatus?: string;
   recommendations?: string;
@@ -231,6 +248,25 @@ export function adaptCoordinatorReport(report: ReportLike): ReportExportPayload 
           { label: "Submitted", value: String(report.examinerReportsSummary?.submitted ?? 0) },
           { label: "Approved", value: String(report.examinerReportsSummary?.approved ?? 0) },
           { label: "Pending", value: String(report.examinerReportsSummary?.pending ?? 0) },
+        ],
+      },
+      {
+        heading: "Student Responses",
+        rows: [
+          ["Lectures", "studentLectureResponse"],
+          ["Assignments", "studentAssignmentResponse"],
+          ["Quizzes", "studentQuizResponse"],
+          ["Course work", "studentCourseworkResponse"],
+        ].map(([label, prefix]) => ({ label, value: `Low ${(report as Record<string, unknown>)[`${prefix}Low`] ?? 0}% | Average ${(report as Record<string, unknown>)[`${prefix}Average`] ?? 0}% | High ${(report as Record<string, unknown>)[`${prefix}High`] ?? 0}%` })),
+      },
+      {
+        heading: "Operational Indicators",
+        rows: [
+          { label: "Weekly syllabus covered", value: `${report.weeklySyllabusCoveredRate ?? 0}%` },
+          { label: "Course materials released", value: `${report.courseMaterialsReleasedRate ?? 0}%` },
+          { label: "Exam readiness", value: `${report.examReadinessRate ?? 0}%` },
+          { label: "Supervisor's actives", value: `${report.supervisorActivesRate ?? 0}%` },
+          { label: "Student progression", value: `${report.studentProgressionRate ?? 0}%` },
         ],
       },
       {

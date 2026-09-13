@@ -7,6 +7,8 @@ import { buildPdfBuffer } from "@/lib/export/toPdf";
 import { uploadAndRegister } from "@/lib/export/uploadAndRegister";
 import { getDirectorSummary } from "@/lib/data/portal";
 import { REPORT_TYPE_MAP, loadPopulatedReport, type ReportKey } from "@/lib/reports/reportRegistry";
+import { getPortalSession, canViewAssociateProvostReport } from "@/lib/auth/reportAccess";
+import { resolveReportContext } from "@/lib/auth/reportContext";
 
 type ReportRecord = Record<string, unknown> & {
   facultyId?: { _id?: { toString: () => string } } | string;
@@ -43,6 +45,16 @@ export async function GET(
 
     if (!report) {
       return NextResponse.json({ message: "Report not found" }, { status: 404 });
+    }
+
+    const session = await getPortalSession();
+    const role = session?.user?.role?.toUpperCase().trim();
+    const associateProvostField = session?.user?.associateProvostField;
+    if (role === "ASSOCIATE_PROVOST") {
+      const context = await resolveReportContext(type, report);
+      if (!canViewAssociateProvostReport(role, associateProvostField, context.associateProvostField)) {
+        return NextResponse.json({ message: "This report is outside your assigned field." }, { status: 403 });
+      }
     }
   }
 

@@ -5,14 +5,22 @@ import { connectDB } from "@/lib/db/connectDB";
 import CoordinatorReport from "@/models/CoordinatorReport";
 import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 import { logAudit } from "@/lib/audit/logAudit";
+import Faculty from "@/models/Faculty";
+import Department from "@/models/Department";
 
 export async function GET(req: NextRequest) {
   await connectDB();
   const { searchParams } = new URL(req.url);
   const curriculumId = searchParams.get("curriculumId");
+  const session = await getServerSession(authOptions);
 
-  const filter: Record<string, string> = {};
+  const filter: Record<string, unknown> = {};
   if (curriculumId) filter.curriculumId = curriculumId;
+  if (session?.user?.role?.toUpperCase().trim() === "ASSOCIATE_PROVOST" && session.user.associateProvostField) {
+    const faculties = await Faculty.find({ associateProvostField: session.user.associateProvostField }).select("_id").lean();
+    const departments = await Department.find({ facultyId: { $in: faculties.map((faculty) => faculty._id) } }).select("_id").lean();
+    filter.departmentId = { $in: departments.map((department) => department._id) };
+  }
 
   const reports = await CoordinatorReport.find(filter)
     .populate("curriculumId", "programName")

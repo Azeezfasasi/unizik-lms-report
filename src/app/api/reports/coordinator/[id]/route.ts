@@ -4,16 +4,27 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { connectDB } from "@/lib/db/connectDB";
 import CoordinatorReport from "@/models/CoordinatorReport";
 import { logAudit } from "@/lib/audit/logAudit";
+import { canViewAssociateProvostReport } from "@/lib/auth/reportAccess";
+import { resolveReportContext } from "@/lib/auth/reportContext";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
+  const session = await getServerSession(authOptions);
   const { id } = await params;
+  const associateProvostField = session?.user?.associateProvostField;
   const report = await CoordinatorReport.findById(id)
     .populate("curriculumId", "programName")
     .populate("preparedBy", "name")
     .lean();
 
   if (!report) return NextResponse.json({ message: "Not found" }, { status: 404 });
+  const role = session?.user?.role?.toUpperCase().trim();
+  if (role === "ASSOCIATE_PROVOST") {
+    const context = await resolveReportContext("coordinator", report as unknown as Record<string, unknown>);
+    if (!canViewAssociateProvostReport(role, associateProvostField, context.associateProvostField)) {
+      return NextResponse.json({ message: "This report is outside your assigned field." }, { status: 403 });
+    }
+  }
   return NextResponse.json(report);
 }
 
