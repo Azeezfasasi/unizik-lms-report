@@ -5,6 +5,25 @@ import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
 import { Spinner } from "@/components/ui/Spinner";
 
+interface FacultyOption {
+  id: string;
+  name: string;
+}
+
+interface DepartmentOption {
+  id: string;
+  name: string;
+  facultyId: string;
+}
+
+function SelectChevron() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400">
+      <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function EditUserPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
   const router = useRouter();
@@ -17,21 +36,52 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
   const [associateProvostField, setAssociateProvostField] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  const [faculties, setFaculties] = useState<FacultyOption[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+
+  const availableDepartments = departments.filter((department) => department.facultyId === facultyId);
 
   useEffect(() => {
-    async function loadUser() {
-      const response = await fetch(`/api/users/${userId}`);
-      const data = await response.json();
-      setName(data.name || "");
-      setEmail(data.email || "");
-      setRole(data.role || "STUDENT");
-      setFacultyId(data.facultyId || "");
-      setDepartmentId(data.departmentId || "");
-      setAssociateProvostField(data.associateProvostField || "");
+    async function loadData() {
+      try {
+        const [userResponse, facultiesResponse, departmentsResponse] = await Promise.all([
+          fetch(`/api/users/${userId}`),
+          fetch("/api/faculties"),
+          fetch("/api/departments"),
+        ]);
+        const [data, facultiesData, departmentsData] = await Promise.all([
+          userResponse.json(),
+          facultiesResponse.json(),
+          departmentsResponse.json(),
+        ]);
+
+        setName(data.name || "");
+        setEmail(data.email || "");
+        setRole(data.role || "STUDENT");
+        setFacultyId(data.facultyId ? String(data.facultyId) : "");
+        setDepartmentId(data.departmentId ? String(data.departmentId) : "");
+        setAssociateProvostField(data.associateProvostField || "");
+        setFaculties(facultiesData.map((faculty: { _id: string; name: string }) => ({ id: faculty._id, name: faculty.name })));
+        setDepartments(departmentsData.map((department: { _id: string; name: string; facultyId: string }) => ({
+          id: department._id,
+          name: department.name,
+          facultyId: String(department.facultyId),
+        })));
+      } finally {
+        setOptionsLoading(false);
+      }
     }
 
-    loadUser();
+    loadData();
   }, [userId]);
+
+  function handleFacultyChange(value: string) {
+    setFacultyId(value);
+    if (!departments.some((department) => department.id === departmentId && department.facultyId === value)) {
+      setDepartmentId("");
+    }
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -105,13 +155,25 @@ export default function EditUserPage({ params }: { params: Promise<{ userId: str
           </div>
         </div>
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Faculty ID</label>
-          <input value={facultyId} onChange={(event) => setFacultyId(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" placeholder="Optional" />
+          <label className="mb-2 block text-sm font-medium text-slate-700">Faculty</label>
+          <div className="relative">
+            <select value={facultyId} onChange={(event) => handleFacultyChange(event.target.value)} disabled={optionsLoading} className="w-full appearance-none rounded-2xl border border-slate-300 px-4 py-3 pr-10 text-sm disabled:cursor-wait disabled:text-slate-400">
+              <option value="">{optionsLoading ? "Loading faculties..." : "No faculty"}</option>
+              {faculties.map((faculty) => <option key={faculty.id} value={faculty.id}>{faculty.name}</option>)}
+            </select>
+            <SelectChevron />
+          </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Department ID</label>
-            <input value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" placeholder="Optional" />
+            <label className="mb-2 block text-sm font-medium text-slate-700">Department</label>
+            <div className="relative">
+              <select value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} disabled={optionsLoading || !facultyId} className="w-full appearance-none rounded-2xl border border-slate-300 px-4 py-3 pr-10 text-sm disabled:cursor-wait disabled:text-slate-400">
+                <option value="">{optionsLoading ? "Loading departments..." : !facultyId ? "Select a faculty first" : availableDepartments.length ? "No department" : "No departments available"}</option>
+                {availableDepartments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
+              </select>
+              <SelectChevron />
+            </div>
           </div>
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">Associate Provost field</label>

@@ -10,6 +10,12 @@ interface FacultyOption {
   name: string;
 }
 
+interface DepartmentOption {
+  id: string;
+  name: string;
+  facultyId: string;
+}
+
 const ROLE_DESCRIPTIONS: Record<string, string> = {
   ADMIN: "Full administrative access across all faculties and departments.",
   FACULTY_OFFICER: "Manages students, examiners, and reports within an assigned faculty.",
@@ -17,7 +23,7 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
   STUDENT: "Read-only access to their own academic records.",
   LMS_REP: "Submits LMS representative reports and monitors course delivery.",
   PG_COORDINATOR: "Prepares postgraduate course coordinator reports and oversight metrics.",
-  SUPERVISOR: "Reviews student response metrics and departmental teaching quality.",
+  SUPERVISOR: "Supervises Project and Thesis work.",
   HOD: "Submits weekly comprehensive departmental activity reports.",
   DEAN: "Reviews and approves reports from every department in an assigned faculty.",
   SUB_DEAN: "Reviews and approves reports from every department in an assigned faculty.",
@@ -80,20 +86,31 @@ export default function NewUserPage() {
   const [submitting, setSubmitting] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
 
   useEffect(() => {
     async function loadFaculties() {
       try {
-        const response = await fetch("/api/faculties");
-        if (!response.ok) return;
+        const [facultiesResponse, departmentsResponse] = await Promise.all([
+          fetch("/api/faculties"),
+          fetch("/api/departments"),
+        ]);
+        if (!facultiesResponse.ok || !departmentsResponse.ok) return;
 
-        const data = await response.json();
-        const facultyOptions: FacultyOption[] = data.map((faculty: { _id: string; name: string }) => ({
+        const facultiesData = await facultiesResponse.json();
+        const departmentsData = await departmentsResponse.json();
+        const facultyOptions: FacultyOption[] = facultiesData.map((faculty: { _id: string; name: string }) => ({
           id: faculty._id,
           name: faculty.name,
         }));
+        const departmentOptions: DepartmentOption[] = departmentsData.map((department: { _id: string; name: string; facultyId: string }) => ({
+          id: department._id,
+          name: department.name,
+          facultyId: String(department.facultyId),
+        }));
 
         setFaculties(facultyOptions);
+        setDepartments(departmentOptions);
       } catch {
         // ignore fetch failure; faculty stays optional
       } finally {
@@ -103,6 +120,15 @@ export default function NewUserPage() {
 
     loadFaculties();
   }, []);
+
+  const availableDepartments = departments.filter((department) => department.facultyId === facultyId);
+
+  function handleFacultyChange(value: string) {
+    setFacultyId(value);
+    if (!departments.some((department) => department.id === departmentId && department.facultyId === value)) {
+      setDepartmentId("");
+    }
+  }
 
   function validateForm() {
     const nextErrors: Record<string, string> = {};
@@ -336,7 +362,7 @@ export default function NewUserPage() {
                     <select
                       value={facultyId}
                       disabled={optionsLoading}
-                      onChange={(event) => setFacultyId(event.target.value)}
+                      onChange={(event) => handleFacultyChange(event.target.value)}
                       className={`${baseInput} ${okInput} appearance-none pr-10 disabled:cursor-wait disabled:text-slate-400`}
                     >
                       <option value="">{optionsLoading ? "Loading faculties..." : "No faculty"}</option>
@@ -353,8 +379,15 @@ export default function NewUserPage() {
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">Department ID</label>
-                  <input value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} className={`${baseInput} ${okInput}`} placeholder="Optional department assignment" />
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Department</label>
+                  <div className="relative">
+                    <select value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} disabled={optionsLoading || !facultyId} className={`${baseInput} ${okInput} appearance-none pr-10 disabled:cursor-wait disabled:text-slate-400`}>
+                      <option value="">{optionsLoading ? "Loading departments..." : !facultyId ? "Select a faculty first" : availableDepartments.length ? "No department" : "No departments available"}</option>
+                      {availableDepartments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
+                    </select>
+                    <SelectChevron />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-500">Optional department assignment.</p>
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">Associate Provost field</label>
