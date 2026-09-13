@@ -48,6 +48,7 @@ export function Sidebar() {
     "/dashboard/academic-weeks": "Academics",
     "/dashboard/director": "Reporting",
     "/dashboard/weekly-effectiveness-report": "Reporting",
+    "/dashboard/associate-provost": "Reporting",
   };
 
   useEffect(() => {
