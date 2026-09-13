@@ -45,12 +45,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Select a curriculum before submitting this report." }, { status: 400 });
   }
 
-  if (!body.courseId) {
-    return NextResponse.json({ message: "Select a course before submitting this report." }, { status: 400 });
-  }
-
-  if (!body.weekId) {
-    return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
+  if (!body.projectTitle?.trim() || !body.milestone?.trim() || !body.progressSummary?.trim()) {
+    return NextResponse.json({ message: "Provide the project or thesis title, milestone, and progress summary." }, { status: 400 });
   }
 
   const report = await SupervisorReport.create({

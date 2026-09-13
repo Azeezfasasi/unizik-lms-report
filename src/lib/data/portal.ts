@@ -929,10 +929,6 @@ export async function getDirectorSummary(academicSession?: string, semester?: "F
           $group: {
             _id: null,
             count: { $sum: 1 },
-            avgStudentResponseToLectures: { $avg: "$studentResponseToLecturesPct" },
-            avgStudentResponseToAssignments: { $avg: "$studentResponseToAssignmentsPct" },
-            avgStudentResponseToQuiz: { $avg: "$studentResponseToQuizPct" },
-            avgStudentResponseToCoursework: { $avg: "$studentResponseToCourseworkPct" },
           },
         },
       ]),
@@ -956,22 +952,8 @@ export async function getDirectorSummary(academicSession?: string, semester?: "F
 
     const supervisorData = supervisorSummary[0] ?? {
       count: 0,
-      avgStudentResponseToLectures: 0,
-      avgStudentResponseToAssignments: 0,
-      avgStudentResponseToQuiz: 0,
-      avgStudentResponseToCoursework: 0,
     };
     const examinerData = examinerSummary[0] ?? { count: 0 };
-
-    const avgSupervisorResponsePct = supervisorData.count
-      ? Math.round(
-          (Number(supervisorData.avgStudentResponseToLectures) +
-            Number(supervisorData.avgStudentResponseToAssignments) +
-            Number(supervisorData.avgStudentResponseToQuiz) +
-            Number(supervisorData.avgStudentResponseToCoursework)) /
-            4
-        )
-      : 0;
 
     const totalScheduled = lmsReports.reduce(
       (sum: number, report: { totalLecturesScheduled?: number }) => sum + Number(report.totalLecturesScheduled ?? 0),
@@ -1011,7 +993,6 @@ export async function getDirectorSummary(academicSession?: string, semester?: "F
       coordinatorMisconductCount: coordinatorData.misconductCount,
       supervisorReportCount: supervisorData.count,
       examinerReportCount: examinerData.count,
-      avgSupervisorResponsePct,
     };
   } catch {
     return {
@@ -1030,7 +1011,6 @@ export async function getDirectorSummary(academicSession?: string, semester?: "F
       coordinatorMisconductCount: 0,
       supervisorReportCount: 0,
       examinerReportCount: 0,
-      avgSupervisorResponsePct: 0,
     };
   }
 }

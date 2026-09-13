@@ -64,6 +64,9 @@ type ReportLike = {
   examTimetableStatus?: string;
   recommendations?: string;
   studentId?: NamedRecord;
+  projectTitle?: string;
+  milestone?: string;
+  progressSummary?: string;
   notes?: string;
   teachingQuality?: number;
   examPreparedness?: number;
@@ -72,10 +75,6 @@ type ReportLike = {
   examFeedback?: string;
   instructorFeedback?: string;
   lmsPortalFeedback?: string;
-  studentResponseToLecturesPct?: number;
-  studentResponseToAssignmentsPct?: number;
-  studentResponseToQuizPct?: number;
-  studentResponseToCourseworkPct?: number;
   weeklyEntries?: Array<{
     weekId?: { weekNumber?: number; label?: string };
     lecturerEffectivenessRating?: number;
@@ -195,15 +194,11 @@ export function adaptSupervisorReport(report: ReportLike): ReportExportPayload {
       {
         heading: "Student Response Metrics",
         rows: [
-          { label: "Lectures", value: `${report.studentResponseToLecturesPct ?? 0}%` },
-          { label: "Assignments", value: `${report.studentResponseToAssignmentsPct ?? 0}%` },
-          { label: "Quizzes", value: `${report.studentResponseToQuizPct ?? 0}%` },
-          { label: "Coursework", value: `${report.studentResponseToCourseworkPct ?? 0}%` },
+            { label: "Project or Thesis", value: report.projectTitle ?? "-" },
+            { label: "Student", value: report.studentId?.fullName ?? "Not specified" },
+            { label: "Milestone", value: report.milestone ?? "-" },
+            { label: "Progress Summary", value: report.progressSummary ?? "-" },
         ],
-      },
-      {
-        heading: "Comments",
-        rows: [{ label: "Comments", value: report.comments || "None" }],
       },
     ],
     generatedAt: new Date(),
@@ -392,7 +387,6 @@ export function adaptDirectorReport(report: Record<string, unknown>): ReportExpo
         heading: "Supervisor Reports",
         rows: [
           { label: "Submitted supervisor reports", value: String(report.supervisorReportCount ?? 0) },
-          { label: "Avg student response metrics", value: `${report.avgSupervisorResponsePct ?? 0}%` },
         ],
       },
     ],

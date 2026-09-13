@@ -15,6 +15,7 @@ export default async function SupervisorReportDetailPage({ params }: { params: P
   const report = await SupervisorReport.findById(id)
     .populate("facultyId", "name")
     .populate("departmentId", "name")
+    .populate("studentId", "fullName matricNumber")
     .populate("submittedBy", "name")
     .lean();
 
@@ -28,11 +29,10 @@ export default async function SupervisorReportDetailPage({ params }: { params: P
     semester?: string;
     status?: string;
     submittedBy?: { name?: string };
-    studentResponseToLecturesPct?: number;
-    studentResponseToAssignmentsPct?: number;
-    studentResponseToQuizPct?: number;
-    studentResponseToCourseworkPct?: number;
-    comments?: string;
+    studentId?: { fullName?: string; matricNumber?: string };
+    projectTitle?: string;
+    milestone?: string;
+    progressSummary?: string;
   };
 
   return (
@@ -58,12 +58,11 @@ export default async function SupervisorReportDetailPage({ params }: { params: P
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-base font-semibold text-slate-900">Student Response Metrics</h3>
+          <h3 className="text-base font-semibold text-slate-900">Project or Thesis</h3>
           <div className="mt-4 space-y-3 text-sm text-slate-600">
-            <div>Lectures: {r.studentResponseToLecturesPct}%</div>
-            <div>Assignments: {r.studentResponseToAssignmentsPct}%</div>
-            <div>Quizzes: {r.studentResponseToQuizPct}%</div>
-            <div>Coursework: {r.studentResponseToCourseworkPct}%</div>
+            <div>Title: {r.projectTitle ?? "N/A"}</div>
+            <div>Student: {r.studentId ? `${r.studentId.fullName ?? "Unknown"} (${r.studentId.matricNumber ?? "No matric number"})` : "Not specified"}</div>
+            <div>Current milestone: {r.milestone ?? "N/A"}</div>
           </div>
         </div>
 
@@ -78,8 +77,8 @@ export default async function SupervisorReportDetailPage({ params }: { params: P
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 className="text-base font-semibold text-slate-900">Comments</h3>
-        <p className="mt-3 text-sm leading-7 text-slate-700">{r.comments || "No comments provided."}</p>
+        <h3 className="text-base font-semibold text-slate-900">Progress Summary</h3>
+        <p className="mt-3 text-sm leading-7 text-slate-700">{r.progressSummary || "No progress summary provided."}</p>
       </div>
       <ReportReviewActions reportType="supervisor" reportId={r._id.toString()} status={r.status ?? "DRAFT"} />
       <ReportDiscussionPanel reportType="supervisor" reportId={r._id.toString()} />

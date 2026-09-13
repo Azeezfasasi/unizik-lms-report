@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { PercentageRating } from "@/components/shared/PercentageRating";
-import { AcademicWeekGate } from "@/components/shared/AcademicWeekGate";
 import { AcademicSessionSelect } from "@/components/shared/AcademicSessionSelect";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -25,10 +23,11 @@ interface CurriculumOption {
   departmentId?: string;
 }
 
-interface CourseOption {
+interface StudentOption {
   _id: string;
-  title: string;
-  code: string;
+  fullName: string;
+  matricNumber: string;
+  curriculumId?: string;
 }
 
 const SEMESTERS = ["FIRST", "SECOND"] as const;
@@ -39,19 +38,16 @@ export default function NewSupervisorReportPage() {
   const [faculties, setFaculties] = useState<FacultyOption[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [curriculums, setCurriculums] = useState<CurriculumOption[]>([]);
-  const [courses, setCourses] = useState<CourseOption[]>([]);
+  const [students, setStudents] = useState<StudentOption[]>([]);
   const [facultyId, setFacultyId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [curriculumId, setCurriculumId] = useState("");
-  const [courseId, setCourseId] = useState("");
-  const [weekId, setWeekId] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [academicSession, setAcademicSession] = useState("");
   const [semester, setSemester] = useState<typeof SEMESTERS[number]>("FIRST");
-  const [lectureResponse, setLectureResponse] = useState(80);
-  const [assignmentResponse, setAssignmentResponse] = useState(80);
-  const [quizResponse, setQuizResponse] = useState(80);
-  const [courseworkResponse, setCourseworkResponse] = useState(80);
-  const [comments, setComments] = useState("");
+  const [projectTitle, setProjectTitle] = useState("");
+  const [milestone, setMilestone] = useState("");
+  const [progressSummary, setProgressSummary] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -93,37 +89,40 @@ export default function NewSupervisorReportPage() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadCourses() {
-      if (!curriculumId) {
-        setCourses([]);
-        setCourseId("");
+    async function loadStudents() {
+      if (!departmentId) {
+        setStudents([]);
+        setStudentId("");
         return;
       }
 
       try {
-        const response = await fetch(`/api/courses?curriculumId=${curriculumId}`);
+        const response = await fetch(`/api/students?departmentId=${departmentId}`);
         const data = await response.json();
         if (cancelled) return;
-        const list: CourseOption[] = Array.isArray(data) ? data : [];
-        setCourses(list);
-        setCourseId((current) => (list.some((course) => course._id === current) ? current : list[0]?._id ?? ""));
+        const list: StudentOption[] = Array.isArray(data)
+          ? data.filter((student) => !curriculumId || student.curriculumId === curriculumId)
+          : [];
+        setStudents(list);
+        setStudentId((current) => (list.some((student) => student._id === current) ? current : ""));
       } catch {
         if (!cancelled) {
-          setCourses([]);
-          setCourseId("");
+          setStudents([]);
+          setStudentId("");
         }
       }
     }
 
-    loadCourses();
+    loadStudents();
     return () => {
       cancelled = true;
     };
-  }, [curriculumId]);
+  }, [departmentId, curriculumId]);
 
   function handleDepartmentChange(nextDepartmentId: string) {
     setDepartmentId(nextDepartmentId);
     setCurriculumId("");
+    setStudentId("");
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -135,13 +134,8 @@ export default function NewSupervisorReportPage() {
       return;
     }
 
-    if (!courseId) {
-      setMessage("Select a course before submitting this report.");
-      return;
-    }
-
-    if (!weekId) {
-      setMessage("Select or create an academic week before submitting this report.");
+    if (!projectTitle.trim() || !milestone.trim() || !progressSummary.trim()) {
+      setMessage("Provide the project or thesis title, milestone, and progress summary.");
       return;
     }
 
@@ -151,15 +145,12 @@ export default function NewSupervisorReportPage() {
       facultyId,
       departmentId,
       curriculumId,
-      courseId,
-      weekId,
+      studentId: studentId || undefined,
       academicSession,
       semester,
-      studentResponseToLecturesPct: lectureResponse,
-      studentResponseToAssignmentsPct: assignmentResponse,
-      studentResponseToQuizPct: quizResponse,
-      studentResponseToCourseworkPct: courseworkResponse,
-      comments,
+      projectTitle,
+      milestone,
+      progressSummary,
       status: "SUBMITTED",
     };
 
@@ -185,7 +176,7 @@ export default function NewSupervisorReportPage() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-teal-600">Supervisor report</p>
         <h1 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">New Supervisor Review</h1>
-        <p className="mt-2 text-sm text-slate-500">Submit department-level student response and workload quality metrics.</p>
+        <p className="mt-2 text-sm text-slate-500">Submit a Project or Thesis supervision progress report.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -224,20 +215,10 @@ export default function NewSupervisorReportPage() {
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
-            Course
-            <select
-              value={courseId}
-              onChange={(event) => setCourseId(event.target.value)}
-              disabled={!curriculumId || courses.length === 0}
-              className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:cursor-wait disabled:text-slate-400"
-            >
-              {courses.length > 0 ? (
-                courses.map((course) => (
-                  <option key={course._id} value={course._id}>{course.title} ({course.code})</option>
-                ))
-              ) : (
-                <option value="">No courses available</option>
-              )}
+            Student (optional)
+            <select value={studentId} onChange={(event) => setStudentId(event.target.value)} disabled={!curriculumId || students.length === 0} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm disabled:text-slate-400">
+              <option value="">Select student</option>
+              {students.map((student) => <option key={student._id} value={student._id}>{student.fullName} ({student.matricNumber})</option>)}
             </select>
           </label>
 
@@ -272,43 +253,25 @@ export default function NewSupervisorReportPage() {
           </div>
         </div>
 
-        <div className="mt-6">
-          <AcademicWeekGate
-            curriculumId={curriculumId}
-            courseId={courseId}
-            academicSession={academicSession}
-            semester={semester}
-            weekId={weekId}
-            onWeekChange={setWeekId}
-          />
+        <div className="mt-6 grid gap-4">
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Project or Thesis title
+            <input required value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" />
+          </label>
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Current milestone
+            <input required value={milestone} onChange={(event) => setMilestone(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" placeholder="Proposal, literature review, data collection..." />
+          </label>
+          <label className="space-y-2 text-sm font-medium text-slate-700">
+            Progress summary
+            <textarea required rows={5} value={progressSummary} onChange={(event) => setProgressSummary(event.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm" />
+          </label>
         </div>
-
-        {weekId ? (
-          <>
-            <div className="mt-6 grid gap-4">
-              <PercentageRating label="Student response to lectures" value={lectureResponse} onChange={setLectureResponse} />
-              <PercentageRating label="Student response to assignments" value={assignmentResponse} onChange={setAssignmentResponse} />
-              <PercentageRating label="Student response to quizzes" value={quizResponse} onChange={setQuizResponse} />
-              <PercentageRating label="Student response to coursework" value={courseworkResponse} onChange={setCourseworkResponse} />
-            </div>
-
-            <label className="mt-6 block space-y-2 text-sm font-medium text-slate-700">
-              Additional comments
-              <textarea
-                rows={5}
-                value={comments}
-                onChange={(event) => setComments(event.target.value)}
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm"
-                placeholder="Provide qualitative context for the ratings."
-              />
-            </label>
-          </>
-        ) : null}
 
         {message ? <p className="mt-4 text-sm text-rose-600">{message}</p> : null}
 
         <div className="mt-6 flex justify-end">
-          <button type="submit" disabled={loading || !curriculumId || !courseId || !weekId} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="submit" disabled={loading || !curriculumId || !projectTitle.trim() || !milestone.trim() || !progressSummary.trim()} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
             {loading ? (
               <>
                 <Spinner className="h-4 w-4" />

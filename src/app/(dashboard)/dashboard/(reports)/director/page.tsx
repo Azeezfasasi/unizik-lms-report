@@ -123,8 +123,8 @@ export default async function DirectorSummaryPage({
               <p className="mt-2 text-2xl font-semibold text-slate-900">{summary.avgLecturerResponseRate}%</p>
             </div>
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Supervisor response</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{summary.avgSupervisorResponsePct}%</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Project/Thesis supervision reports</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{summary.supervisorReportCount}</p>
             </div>
           </div>
         </div>
