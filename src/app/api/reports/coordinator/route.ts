@@ -7,6 +7,7 @@ import { notifyReportEvent } from "@/lib/notify/notifyReportEvent";
 import { logAudit } from "@/lib/audit/logAudit";
 import Faculty from "@/models/Faculty";
 import Department from "@/models/Department";
+import Curriculum from "@/models/Curriculum";
 
 export async function GET(req: NextRequest) {
   await connectDB();
@@ -44,8 +45,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Select or create an academic week before submitting this report." }, { status: 400 });
   }
 
+  const curriculum = await Curriculum.findById(body.curriculumId).select("departmentId").lean();
+  if (!curriculum?.departmentId) {
+    return NextResponse.json({ message: "The selected curriculum is not linked to a department." }, { status: 400 });
+  }
+
   const report = await CoordinatorReport.create({
     ...body,
+    departmentId: curriculum.departmentId,
     preparedBy: session.user.id,
     reportRole: role === "HOD" ? "HOD" : "PG_COORDINATOR",
     reportFrequency: "WEEKLY",

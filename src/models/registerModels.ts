@@ -16,6 +16,7 @@ import "@/models/AuditLog";
 import "@/models/Course";
 import "@/models/CourseRepReport";
 import "@/models/CoordinatorReport";
+import "@/models/DeanReport";
 import "@/models/Curriculum";
 import "@/models/Department";
 import "@/models/DirectorReview";

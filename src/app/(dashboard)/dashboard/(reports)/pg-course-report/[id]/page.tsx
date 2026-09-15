@@ -11,6 +11,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { canViewAssociateProvostReport } from "@/lib/auth/reportAccess";
 import { resolveReportContext } from "@/lib/auth/reportContext";
+import { DeanReportActions } from "@/components/reports/DeanReportActions";
 
 interface CoordinatorReportDetail {
   _id: string;
@@ -151,6 +152,7 @@ export default async function CoordinatorReportDetailPage({ params }: { params: 
         <h3 className="text-base font-semibold text-slate-900">Recommendations</h3>
         <p className="mt-2 text-sm text-slate-600">{r.recommendations || "None"}</p>
       </div>
+      <DeanReportActions coordinatorReportId={r._id.toString()} />
       <ReportReviewActions reportType="coordinator" reportId={r._id.toString()} status={r.status} />
       <ReportDiscussionPanel reportType="coordinator" reportId={r._id.toString()} />
     </div>

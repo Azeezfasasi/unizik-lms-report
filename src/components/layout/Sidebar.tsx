@@ -49,6 +49,7 @@ export function Sidebar() {
     "/dashboard/director": "Reporting",
     "/dashboard/weekly-effectiveness-report": "Reporting",
     "/dashboard/associate-provost": "Reporting",
+    "/dashboard/dean-reports": "Reporting",
   };
 
   useEffect(() => {
